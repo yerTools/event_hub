@@ -1,11 +1,11 @@
 {
-	"recommendations": [
-		"esbenp.prettier-vscode",
-		"github.vscode-github-actions",
-		"gleam.gleam",
-		"pgourlain.erlang",
-		"streetsidesoftware.code-spell-checker",
-		"supertsy5.line-length-checker-vscode",
-		"tyriar.sort-lines",
-	]
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "github.vscode-github-actions",
+    "gleam.gleam",
+    "pgourlain.erlang",
+    "streetsidesoftware.code-spell-checker",
+    "supertsy5.line-length-checker-vscode",
+    "tyriar.sort-lines"
+  ]
 }

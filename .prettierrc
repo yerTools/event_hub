@@ -22,7 +22,6 @@
   "logicalOperatorNewline": "after",
   "newlineBeforeSemicolon": false,
   "overrides": [],
-  "plugins": ["prettier-plugin-sql"],
   "printWidth": 80,
   "proseWrap": "always",
   "quoteProps": "consistent",
