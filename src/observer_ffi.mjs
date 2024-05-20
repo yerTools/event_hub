@@ -22,11 +22,12 @@
 // ================
 
 /**
+ * Invoke each callback synchronously with the provided value.
  * @template T
  * @param {Callbacks<T>} callbacks 
  * @param {T} value 
  */
-function spawnInvoke (callbacks, value) {
+function invokeCallbacks (callbacks, value) {
   for (const [_, callback] of Object.entries(callbacks)) {
     callback.call(null, value);
   }
@@ -37,10 +38,11 @@ function spawnInvoke (callbacks, value) {
 // ==================
 
 /**
+ * Creates a new stateless observer.
  * @template T
  * @returns {Hub<T>}
  */
-export function start () {
+export function startStateless () {
     return {
         callbacks: {},
         index: 0,
@@ -48,42 +50,45 @@ export function start () {
 }
 
 /**
+ * Adds a callback to the stateless observer, returning the index.
  * @template T
  * @param {Hub<T>} hub 
  * @param {Callback<T>} callback
  * @returns {number}
  */
-export function add (hub, callback) {
-    const index = hub.index;
+export function addStateless (hub, callback) {
     hub.index++;
 
-    hub.callbacks[index] = callback;
-    return index;
+    hub.callbacks[hub.index] = callback;
+    return hub.index;
 }
 
 /**
+ * Invokes all callbacks synchronously with the given value.
  * @template T
  * @param {Hub<T>} hub 
  * @param {T} value 
  */
-export function invoke (hub, value) {
-    spawnInvoke(hub.callbacks, value);
+export function invokeStateless (hub, value) {
+    invokeCallbacks(hub.callbacks, value);
 }
 
 /**
+ * Removes a callback by its index.
  * @template T
  * @param {Hub<T>} hub 
  * @param {number} index 
  */
-export function remove (hub, index) {
+export function removeStateless (hub, index) {
     delete hub.callbacks[index];
 }
 
 /**
+ * Clears all callbacks from the stateless observer.
  * @template T
  * @param {Hub<T>} hub 
  */
-export function stop (hub) {
+export function stopStateless (hub) {
     hub.callbacks = {};
     hub.index = 0;
 }
@@ -92,6 +97,7 @@ export function stop (hub) {
 // =================
 
 /**
+ * Creates a new stateful observer with an initial state.
  * @template T
  * @param {T} value 
  * @returns {StatefulHub<T>}
@@ -105,38 +111,42 @@ export function startStateful (value) {
 }
 
 /**
+ * Adds a callback to the stateful observer, returning the current state and index.
  * @template T
  * @param {StatefulHub<T>} hub 
  * @param {Callback<T>} callback
  * @returns {number}
  */
 export function addStateful (hub, callback) {
-    const index = hub.index;
     hub.index++;
 
-    hub.callbacks[index] = callback;
-    return index;
+    hub.callbacks[hub.index] = callback;
+    return hub.index;
 }
 
 /**
+ * Retrieves the current state.
  * @template T
  * @param {StatefulHub<T>} hub 
+ * @returns {T}
  */
 export function currentState (hub) {
     return hub.value;
 }
 
 /**
+ * Invokes all callbacks synchronously with a new state, updating the state.
  * @template T
  * @param {StatefulHub<T>} hub 
  * @param {T} value 
  */
 export function invokeStateful (hub, value) {
     hub.value = value;
-    spawnInvoke(hub.callbacks, value);
+    invokeCallbacks(hub.callbacks, value);
 }
 
 /**
+ * Removes a callback by its index.
  * @template T
  * @param {StatefulHub<T>} hub 
  * @param {number} index 
@@ -146,6 +156,7 @@ export function removeStateful (hub, index) {
 }
 
 /**
+ * Stops the stateful observer process.
  * @template T
  * @param {StatefulHub<T>} hub 
  */

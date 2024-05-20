@@ -1,22 +1,27 @@
-@external(erlang, "observer_ffi", "start")
-@external(javascript, "./observer_ffi.mjs", "start")
-fn start() -> Hub(value_type)
+/// Starts the stateless observer process.
+@external(erlang, "observer_ffi", "start_stateless")
+@external(javascript, "./observer_ffi.mjs", "startStateless")
+fn start_stateless() -> Hub(value_type)
 
-@external(erlang, "observer_ffi", "add")
-@external(javascript, "./observer_ffi.mjs", "add")
-fn add(hub: Hub(value_type), callback: Callback(value_type)) -> Int
+/// Adds a callback to the stateless observer, returning the index.
+@external(erlang, "observer_ffi", "add_stateless")
+@external(javascript, "./observer_ffi.mjs", "addStateless")
+fn add_stateless(hub: Hub(value_type), callback: Callback(value_type)) -> Int
 
-@external(erlang, "observer_ffi", "invoke")
-@external(javascript, "./observer_ffi.mjs", "invoke")
-fn invoke(hub: Hub(value_type), value: value_type) -> Nil
+/// Invokes all callbacks in parallel with the given value.
+@external(erlang, "observer_ffi", "invoke_stateless")
+@external(javascript, "./observer_ffi.mjs", "invokeStateless")
+fn invoke_stateless(hub: Hub(value_type), value: value_type) -> Nil
 
-@external(erlang, "observer_ffi", "remove")
-@external(javascript, "./observer_ffi.mjs", "remove")
-fn remove(hub: Hub(value_type), index: Int) -> Nil
+/// Removes a callback by its index.
+@external(erlang, "observer_ffi", "remove_stateless")
+@external(javascript, "./observer_ffi.mjs", "removeStateless")
+fn remove_stateless(hub: Hub(value_type), index: Int) -> Nil
 
-@external(erlang, "observer_ffi", "stop")
-@external(javascript, "./observer_ffi.mjs", "stop")
-fn stop(hub: Hub(value_type)) -> Nil
+/// Stops the stateless observer process.
+@external(erlang, "observer_ffi", "stop_stateless")
+@external(javascript, "./observer_ffi.mjs", "stopStateless")
+fn stop_stateless(hub: Hub(value_type)) -> Nil
 
 pub type Hub(value_type)
 
@@ -27,22 +32,22 @@ pub type Unsubscribe =
   fn() -> Nil
 
 pub fn new(in context: fn(Hub(value_type)) -> result) -> result {
-  let hub = start()
+  let hub = start_stateless()
 
   let result = context(hub)
-  stop(hub)
+  stop_stateless(hub)
 
   result
 }
 
 pub fn notify(on hub: Hub(value_type), with value: value_type) -> Nil {
-  invoke(hub, value)
+  invoke_stateless(hub, value)
 }
 
 pub fn subscribe(
   on hub: Hub(value_type),
   with callback: Callback(value_type),
 ) -> Unsubscribe {
-  let index = add(hub, callback)
-  fn() { remove(hub, index) }
+  let index = add_stateless(hub, callback)
+  fn() { remove_stateless(hub, index) }
 }
