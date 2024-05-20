@@ -1,206 +1,62 @@
-import gleam/dict
-import gleam/list
 import observer
 
-type TopicValue(value_type) {
-  TopicValue(topics: List(String), value: value_type)
-}
+/// Starts the topic-based observer process.
+@external(erlang, "observer_ffi", "start_topic_based")
+@external(javascript, "../observer_ffi.mjs", "startTopicBased")
+fn start_topic_based() -> Hub(value_type)
 
-pub opaque type Hub(value_type) {
-  Hub(inner: observer.Hub(TopicValue(value_type)))
-}
+/// Adds a callback with topics to the topic-based observer, returning the index.
+@external(erlang, "observer_ffi", "add_topic_based")
+@external(javascript, "../observer_ffi.mjs", "addTopicBased")
+fn add_topic_based(
+  hub: Hub(value_type),
+  topics: List(String),
+  callback: observer.Callback(value_type),
+) -> Int
 
-fn has_intersection(a: List(String), b: List(String)) -> Bool {
-  let #(smaller, larger) = case list.length(a) > list.length(b) {
-    True -> #(a, b)
-    False -> #(b, a)
-  }
+/// Invokes all matching callbacks in parallel with the given topics and value, and waits for all of them to complete.
+@external(erlang, "observer_ffi", "invoke_topic_based")
+@external(javascript, "../observer_ffi.mjs", "invokeTopicBased")
+fn invoke_topic_based(
+  hub: Hub(value_type),
+  topics: List(String),
+  value: value_type,
+) -> Nil
 
-  let smaller = dict.from_list(list.map(smaller, fn(topic) { #(topic, Nil) }))
-  list.any(larger, fn(topic) { dict.has_key(smaller, topic) })
-}
+/// Removes a callback by its index.
+@external(erlang, "observer_ffi", "remove_topic_based")
+@external(javascript, "../observer_ffi.mjs", "removeTopicBased")
+fn remove_topic_based(hub: Hub(value_type), index: Int) -> Nil
+
+/// Stops the topic-based observer process.
+@external(erlang, "observer_ffi", "stop_topic_based")
+@external(javascript, "../observer_ffi.mjs", "stopTopicBased")
+fn stop_topic_based(hub: Hub(value_type)) -> Nil
+
+pub type Hub(value_type)
 
 pub fn new(in context: fn(Hub(value_type)) -> result) -> result {
-  use inner <- observer.new()
-  let hub = Hub(inner)
+  let hub = start_topic_based()
 
-  context(hub)
+  let result = context(hub)
+  stop_topic_based(hub)
+
+  result
 }
 
 pub fn notify(
   on hub: Hub(value_type),
-  and topics: List(String),
-  with value: value_type,
+  with topics: List(String),
+  and value: value_type,
 ) -> Nil {
-  observer.notify(hub.inner, TopicValue(topics, value))
+  invoke_topic_based(hub, topics, value)
 }
 
 pub fn subscribe(
   on hub: Hub(value_type),
-  and topics: List(String),
-  with callback: observer.Callback(value_type),
+  with topics: List(String),
+  and callback: observer.Callback(value_type),
 ) -> observer.Unsubscribe {
-  use value <- observer.subscribe(hub.inner)
-  let TopicValue(message_topics, value) = value
-
-  case has_intersection(topics, message_topics) {
-    True -> callback(value)
-    False -> Nil
-  }
-}
-
-type TopicValue2(value_type) {
-  TopicValue2(topics1: List(String), topics2: List(String), value: value_type)
-}
-
-pub opaque type Hub2(value_type) {
-  Hub2(inner: observer.Hub(TopicValue2(value_type)))
-}
-
-pub fn new2(in context: fn(Hub2(value_type)) -> result) -> result {
-  use inner <- observer.new()
-  let hub = Hub2(inner)
-
-  context(hub)
-}
-
-pub fn notify2(
-  hub: Hub2(value_type),
-  topics1: List(String),
-  topics2: List(String),
-  value: value_type,
-) -> Nil {
-  observer.notify(hub.inner, TopicValue2(topics1, topics2, value))
-}
-
-pub fn subscribe2(
-  hub: Hub2(value_type),
-  topics1: List(String),
-  topics2: List(String),
-  callback: observer.Callback(value_type),
-) -> observer.Unsubscribe {
-  use value <- observer.subscribe(hub.inner)
-  let TopicValue2(message_topics1, message_topics2, value) = value
-
-  case
-    has_intersection(topics1, message_topics1)
-    && has_intersection(topics2, message_topics2)
-  {
-    True -> callback(value)
-    False -> Nil
-  }
-}
-
-type TopicValue3(value_type) {
-  TopicValue3(
-    topics1: List(String),
-    topics2: List(String),
-    topics3: List(String),
-    value: value_type,
-  )
-}
-
-pub opaque type Hub3(value_type) {
-  Hub3(inner: observer.Hub(TopicValue3(value_type)))
-}
-
-pub fn new3(in context: fn(Hub3(value_type)) -> result) -> result {
-  use inner <- observer.new()
-  let hub = Hub3(inner)
-
-  context(hub)
-}
-
-pub fn notify3(
-  hub: Hub3(value_type),
-  topics1: List(String),
-  topics2: List(String),
-  topics3: List(String),
-  value: value_type,
-) -> Nil {
-  observer.notify(hub.inner, TopicValue3(topics1, topics2, topics3, value))
-}
-
-pub fn subscribe3(
-  hub: Hub3(value_type),
-  topics1: List(String),
-  topics2: List(String),
-  topics3: List(String),
-  callback: observer.Callback(value_type),
-) -> observer.Unsubscribe {
-  use value <- observer.subscribe(hub.inner)
-  let TopicValue3(message_topics1, message_topics2, message_topics3, value) =
-    value
-
-  case
-    has_intersection(topics1, message_topics1)
-    && has_intersection(topics2, message_topics2)
-    && has_intersection(topics3, message_topics3)
-  {
-    True -> callback(value)
-    False -> Nil
-  }
-}
-
-pub opaque type TopicValue4(value_type) {
-  TopicValue4(
-    topics1: List(String),
-    topics2: List(String),
-    topics3: List(String),
-    topics4: List(String),
-    value: value_type,
-  )
-}
-
-pub opaque type Hub4(value_type) {
-  Hub4(inner: observer.Hub(TopicValue4(value_type)))
-}
-
-pub fn new4(in context: fn(Hub4(value_type)) -> result) -> result {
-  use inner <- observer.new()
-  let hub = Hub4(inner)
-
-  context(hub)
-}
-
-pub fn notify4(
-  hub: Hub4(value_type),
-  topics1: List(String),
-  topics2: List(String),
-  topics3: List(String),
-  topics4: List(String),
-  value: value_type,
-) -> Nil {
-  observer.notify(
-    hub.inner,
-    TopicValue4(topics1, topics2, topics3, topics4, value),
-  )
-}
-
-pub fn subscribe4(
-  hub: Hub4(value_type),
-  topics1: List(String),
-  topics2: List(String),
-  topics3: List(String),
-  topics4: List(String),
-  callback: observer.Callback(value_type),
-) -> observer.Unsubscribe {
-  use value <- observer.subscribe(hub.inner)
-  let TopicValue4(
-    message_topics1,
-    message_topics2,
-    message_topics3,
-    message_topics4,
-    value,
-  ) = value
-
-  case
-    has_intersection(topics1, message_topics1)
-    && has_intersection(topics2, message_topics2)
-    && has_intersection(topics3, message_topics3)
-    && has_intersection(topics4, message_topics4)
-  {
-    True -> callback(value)
-    False -> Nil
-  }
+  let index = add_topic_based(hub, topics, callback)
+  fn() { remove_topic_based(hub, index) }
 }

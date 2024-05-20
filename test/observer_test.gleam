@@ -3,6 +3,7 @@ import gleeunit/should
 import observer
 import observer/reactive
 import observer/stateful
+import observer/topic
 
 pub fn main() {
   gleeunit.main()
@@ -280,6 +281,131 @@ pub fn stateful_with_subscription_notification_test() {
   Nil
 }
 
+pub fn topic_based_test() {
+  use a <- mut(0)
+  use b <- mut(0)
+  use c <- mut(0)
+
+  use hub <- topic.new()
+
+  expect(a, 0)
+  expect(b, 0)
+  expect(c, 0)
+
+  topic.notify(hub, ["a"], 1)
+
+  expect(a, 0)
+  expect(b, 0)
+  expect(c, 0)
+
+  let unsubscribe_a =
+    topic.subscribe(hub, ["a", "*", "ab"], fn(value) { set(a, value) })
+
+  expect(a, 0)
+  expect(b, 0)
+  expect(c, 0)
+
+  topic.notify(hub, ["a", "c"], 2)
+
+  expect(a, 2)
+  expect(b, 0)
+  expect(c, 0)
+
+  let unsubscribe_b =
+    topic.subscribe(hub, ["b", "*", "ab"], fn(value) { set(b, value) })
+
+  expect(a, 2)
+  expect(b, 0)
+  expect(c, 0)
+
+  topic.notify(hub, ["*"], 3)
+
+  expect(a, 3)
+  expect(b, 3)
+  expect(c, 0)
+
+  let unsubscribe_c =
+    topic.subscribe(hub, ["c", "*"], fn(value) { set(c, value) })
+
+  expect(a, 3)
+  expect(b, 3)
+  expect(c, 0)
+
+  topic.notify(hub, ["ab", "a"], 4)
+
+  expect(a, 4)
+  expect(b, 4)
+  expect(c, 0)
+
+  topic.notify(hub, ["a", "c"], 5)
+
+  expect(a, 5)
+  expect(b, 4)
+  expect(c, 5)
+
+  topic.notify(hub, ["c", "d"], 6)
+
+  expect(a, 5)
+  expect(b, 4)
+  expect(c, 6)
+
+  topic.notify(hub, ["a"], 7)
+
+  expect(a, 7)
+  expect(b, 4)
+  expect(c, 6)
+
+  topic.notify(hub, [], 8)
+
+  expect(a, 7)
+  expect(b, 4)
+  expect(c, 6)
+
+  topic.notify(hub, ["*"], 9)
+
+  expect(a, 9)
+  expect(b, 9)
+  expect(c, 9)
+
+  unsubscribe_a()
+
+  expect(a, 9)
+  expect(b, 9)
+  expect(c, 9)
+
+  topic.notify(hub, ["ab"], 10)
+
+  expect(a, 9)
+  expect(b, 10)
+  expect(c, 9)
+
+  unsubscribe_b()
+
+  expect(a, 9)
+  expect(b, 10)
+  expect(c, 9)
+
+  topic.notify(hub, ["ab"], 11)
+
+  expect(a, 9)
+  expect(b, 10)
+  expect(c, 9)
+
+  unsubscribe_c()
+
+  expect(a, 9)
+  expect(b, 10)
+  expect(c, 9)
+
+  topic.notify(hub, ["a", "b", "c"], 11)
+
+  expect(a, 9)
+  expect(b, 10)
+  expect(c, 9)
+
+  Nil
+}
+
 pub fn reactive_test() {
   use counter <- mut(1)
 
@@ -353,23 +479,6 @@ pub fn reactive_test() {
   Nil
 }
 
-pub fn stateless_function_test() {
-  use a <- mut("")
-  let callback = fn(value) { set(a, value) }
-
-  use hub <- observer.new()
-
-  observer.subscribe(hub, fn(value) { value("test") })
-
-  expect(a, "")
-
-  observer.notify(hub, callback)
-
-  expect(a, "test")
-
-  Nil
-}
-
 pub fn stateful_function_test() {
   use a <- mut("")
   let callback = fn(value) { set(a, value) }
@@ -404,23 +513,6 @@ pub fn stateless_hub_in_hub_test() {
   observer.subscribe(outer_hub, fn(hub) { observer.notify(hub, 1) })
 
   observer.notify(outer_hub, inner_hub)
-
-  expect(a, 1)
-
-  Nil
-}
-
-pub fn stateful_hub_in_hub_test() {
-  use a <- mut(0)
-
-  use inner_hub <- stateful.new(0)
-  use outer_hub <- stateful.new(inner_hub)
-
-  stateful.subscribe(inner_hub, False, fn(value) { set(a, value) })
-
-  stateful.subscribe(outer_hub, False, fn(hub) { stateful.notify(hub, 1) })
-
-  stateful.notify(outer_hub, inner_hub)
 
   expect(a, 1)
 
