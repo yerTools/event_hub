@@ -1,7 +1,7 @@
 name = "observer"
 version = "0.0.1"
 
-description = "Observer is a simple message queue with publishers and subscribers for event-driven observers. It supports asynchronous message handling and event notifications, decoupling components efficiently. It works on Erlang and JavaScript."
+description = "Observer provides simple hubs with publishers and subscribers for event-driven observers. It supports asynchronous message handling and event notifications, decoupling components efficiently. It works on Erlang and JavaScript."
 
 licences = ["MIT"]
 repository = { type = "github", user = "yerTools", repo = "observer" } 
