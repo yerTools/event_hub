@@ -1,5 +1,6 @@
 -module(observer_ffi).
 -export([
+    invoke_callback/2,
     start/0,
     add/2,
     invoke/2,
@@ -18,10 +19,13 @@
 spawn_invoke(Callbacks, Value) ->
     lists:foreach(
         fun({_, Callback}) ->
-            spawn(fun() -> Callback(Value) end)
+            invoke(Callback, Value)
         end,
         maps:to_list(Callbacks)
     ).
+
+invoke_callback(Callback, Value) ->
+    spawn(fun() -> Callback(Value) end).
 
 %% Stateless observer
 

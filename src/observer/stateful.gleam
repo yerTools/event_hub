@@ -1,5 +1,12 @@
 import observer
 
+@external(erlang, "observer_ffi", "invoke_callback")
+@external(javascript, "./observer_ffi.mjs", "invokeCallback")
+fn invoke_callback(
+  callback: observer.Callback(value_type),
+  value: value_type,
+) -> Nil
+
 @external(erlang, "observer_ffi", "start_stateful")
 @external(javascript, "./observer_ffi.mjs", "startStateful")
 fn start_stateful(value: value_type) -> Hub(value_type)
@@ -51,8 +58,17 @@ pub fn notify(on hub: Hub(value_type), with value: value_type) -> Nil {
 
 pub fn subscribe(
   on hub: Hub(value_type),
+  should notify_current_state: Bool,
   with callback: observer.Callback(value_type),
 ) -> #(value_type, observer.Unsubscribe) {
+  case notify_current_state {
+    True -> {
+      let current_state = state(hub)
+      invoke_callback(callback, current_state)
+    }
+    False -> Nil
+  }
+
   let #(value, index) = add_stateful(hub, callback)
 
   let unsubscribe = fn() { remove_stateful(hub, index) }

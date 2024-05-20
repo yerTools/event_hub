@@ -22,6 +22,7 @@
 // ================
 
 /**
+ * @template T
  * @param {Callbacks<T>} callbacks 
  * @param {T} value 
  */
@@ -29,6 +30,15 @@ function spawnInvoke (callbacks, value) {
   for (const [_, callback] of Object.entries(callbacks)) {
     queueMicrotask(() => callback.call(null, value));
   }
+}
+
+/**
+ * @template T
+ * @param {Callback<T>} callback 
+ * @param {T} value 
+ */
+export function invokeCallback (callback, value) {
+    queueMicrotask(() => callback.call(null, value));
 }
 
 // Stateless observer
