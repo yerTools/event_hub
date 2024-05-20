@@ -352,3 +352,77 @@ pub fn reactive_test() {
 
   Nil
 }
+
+pub fn stateless_function_test() {
+  use a <- mut("")
+  let callback = fn(value) { set(a, value) }
+
+  use hub <- observer.new()
+
+  observer.subscribe(hub, fn(value) { value("test") })
+
+  expect(a, "")
+
+  observer.notify(hub, callback)
+
+  expect(a, "test")
+
+  Nil
+}
+
+pub fn stateful_function_test() {
+  use a <- mut("")
+  let callback = fn(value) { set(a, value) }
+
+  use hub <- stateful.new(callback)
+
+  let #(_, unsubscribe) =
+    stateful.subscribe(hub, False, fn(value) { value("test 1") })
+
+  expect(a, "")
+
+  stateful.notify(hub, callback)
+
+  expect(a, "test 1")
+  unsubscribe()
+
+  stateful.subscribe(hub, True, fn(value) { value("test 2") })
+
+  expect(a, "test 2")
+
+  Nil
+}
+
+pub fn stateless_hub_in_hub_test() {
+  use a <- mut(0)
+
+  use inner_hub <- observer.new()
+  use outer_hub <- observer.new()
+
+  observer.subscribe(inner_hub, fn(value) { set(a, value) })
+
+  observer.subscribe(outer_hub, fn(hub) { observer.notify(hub, 1) })
+
+  observer.notify(outer_hub, inner_hub)
+
+  expect(a, 1)
+
+  Nil
+}
+
+pub fn stateful_hub_in_hub_test() {
+  use a <- mut(0)
+
+  use inner_hub <- stateful.new(0)
+  use outer_hub <- stateful.new(inner_hub)
+
+  stateful.subscribe(inner_hub, False, fn(value) { set(a, value) })
+
+  stateful.subscribe(outer_hub, False, fn(hub) { stateful.notify(hub, 1) })
+
+  stateful.notify(outer_hub, inner_hub)
+
+  expect(a, 1)
+
+  Nil
+}
