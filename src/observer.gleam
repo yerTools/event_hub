@@ -8,7 +8,7 @@ fn start_stateless() -> Hub(value_type)
 @external(javascript, "./observer_ffi.mjs", "addStateless")
 fn add_stateless(hub: Hub(value_type), callback: Callback(value_type)) -> Int
 
-/// Invokes all callbacks in parallel with the given value.
+/// Invokes all callbacks in parallel with the given value and waits for all of them to complete.
 @external(erlang, "observer_ffi", "invoke_stateless")
 @external(javascript, "./observer_ffi.mjs", "invokeStateless")
 fn invoke_stateless(hub: Hub(value_type), value: value_type) -> Nil

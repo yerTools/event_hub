@@ -2,9 +2,7 @@ name: test
 
 on:
   push:
-    branches:
-      - master
-      - main
+    branches: []
   pull_request:
 
 jobs:
@@ -12,12 +10,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
       - uses: erlef/setup-beam@v1
         with:
           otp-version: "26.0.2"
           gleam-version: "1.1.0"
           rebar3-version: "3"
-          # elixir-version: "1.15.4"
+
+      - uses: actions/setup-node@v4
+        with:
+            node-version: 21.x
+            cache: "npm"
+
       - run: gleam deps download
-      - run: gleam test
+      - run: gleam test --target erlang
+      - run: gleam test --target javascript
       - run: gleam format --check src test

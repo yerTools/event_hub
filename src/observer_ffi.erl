@@ -52,8 +52,9 @@ stateless_loop(Callbacks, Index) ->
             NewCallbacks = Callbacks#{NewIndex => Callback},
             From ! {ok, NewIndex},
             stateless_loop(NewCallbacks, NewIndex);
-        {invoke, Value} ->
+        {invoke, Value, From} ->
             spawn_invoke(Callbacks, Value),
+            From ! {ok},
             stateless_loop(Callbacks, Index);
         {remove, Id} ->
             NewCallbacks = maps:remove(Id, Callbacks),
@@ -69,9 +70,12 @@ add_stateless(Process, Callback) ->
         {ok, Index} -> Index
     end.
 
-%% Invokes all callbacks in parallel with the given value.
+%% Invokes all callbacks in parallel with the given value and waits for all of them to complete.
 invoke_stateless(Process, Value) ->
-    Process ! {invoke, Value}.
+    Process ! {invoke, Value, self()},
+    receive
+        {ok} -> ok
+    end.
 
 %% Removes a callback by its index.
 remove_stateless(Process, Index) ->
@@ -99,8 +103,9 @@ stateful_loop(State, Callbacks, Index) ->
         {current, From} ->
             From ! {ok, State},
             stateful_loop(State, Callbacks, Index);
-        {invoke, Value} ->
+        {invoke, Value, From} ->
             spawn_invoke(Callbacks, Value),
+            From ! {ok},
             stateful_loop(Value, Callbacks, Index);
         {remove, Id} ->
             NewCallbacks = maps:remove(Id, Callbacks),
@@ -123,9 +128,12 @@ current_state(Process) ->
         {ok, State} -> State
     end.
 
-%% Invokes all callbacks in parallel with a new state, updating the state.
+%% Invokes all callbacks in parallel with a new state, updating the state and waits for all callbacks to complete.
 invoke_stateful(Process, Value) ->
-    Process ! {invoke, Value}.
+    Process ! {invoke, Value, self()},
+    receive
+        {ok} -> ok
+    end.
 
 %% Removes a callback by its index.
 remove_stateful(Process, Index) ->

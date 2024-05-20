@@ -115,13 +115,13 @@ export function startStateful (value) {
  * @template T
  * @param {StatefulHub<T>} hub 
  * @param {Callback<T>} callback
- * @returns {number}
+ * @returns {[T, number]}
  */
 export function addStateful (hub, callback) {
     hub.index++;
 
     hub.callbacks[hub.index] = callback;
-    return hub.index;
+    return [hub.value, hub.index];
 }
 
 /**

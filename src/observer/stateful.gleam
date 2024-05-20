@@ -2,12 +2,12 @@ import observer
 
 /// Starts the stateful observer process with an initial state.
 @external(erlang, "observer_ffi", "start_stateful")
-@external(javascript, "./observer_ffi.mjs", "startStateful")
+@external(javascript, "../observer_ffi.mjs", "startStateful")
 fn start_stateful(value: value_type) -> Hub(value_type)
 
 /// Adds a callback to the stateful observer, returning the current state and index.
 @external(erlang, "observer_ffi", "add_stateful")
-@external(javascript, "./observer_ffi.mjs", "addStateful")
+@external(javascript, "../observer_ffi.mjs", "addStateful")
 fn add_stateful(
   hub: Hub(value_type),
   callback: observer.Callback(value_type),
@@ -15,22 +15,22 @@ fn add_stateful(
 
 /// Retrieves the current state.
 @external(erlang, "observer_ffi", "current_state")
-@external(javascript, "./observer_ffi.mjs", "currentState")
+@external(javascript, "../observer_ffi.mjs", "currentState")
 fn current_state(hub: Hub(value_type)) -> value_type
 
-/// Invokes all callbacks in parallel with a new state, updating the state.
+/// Invokes all callbacks in parallel with a new state, updating the state and waits for all callbacks to complete.
 @external(erlang, "observer_ffi", "invoke_stateful")
-@external(javascript, "./observer_ffi.mjs", "invokeStateful")
+@external(javascript, "../observer_ffi.mjs", "invokeStateful")
 fn invoke_stateful(hub: Hub(value_type), value: value_type) -> Nil
 
 /// Removes a callback by its index.
 @external(erlang, "observer_ffi", "remove_stateful")
-@external(javascript, "./observer_ffi.mjs", "removeStateful")
+@external(javascript, "../observer_ffi.mjs", "removeStateful")
 fn remove_stateful(hub: Hub(value_type), index: Int) -> Nil
 
 /// Stops the stateful observer process.
 @external(erlang, "observer_ffi", "stop_stateful")
-@external(javascript, "./observer_ffi.mjs", "stopStateful")
+@external(javascript, "../observer_ffi.mjs", "stopStateful")
 fn stop_stateful(hub: Hub(value_type)) -> Nil
 
 pub type Hub(value_type)
