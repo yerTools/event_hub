@@ -1,0 +1,17 @@
+name = "observer"
+version = "0.0.1"
+
+description = "Observer is a simple message queue with publishers and subscribers for event-driven observers. It supports asynchronous message handling and event notifications, decoupling components efficiently. It works on Erlang and JavaScript."
+
+licences = ["MIT"]
+repository = { type = "github", user = "yerTools", repo = "observer" } 
+
+target = "erlang"
+gleam = ">= 1.0.0"
+
+[dependencies]
+gleam_stdlib = ">= 0.34.0 and < 2.0.0"
+gleam_erlang = ">= 0.25.0 and < 1.0.0"
+
+[dev-dependencies]
+gleeunit = ">= 1.0.0 and < 2.0.0"
