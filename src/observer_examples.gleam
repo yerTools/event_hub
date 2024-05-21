@@ -1,18 +1,20 @@
 import gleam/int
 import gleam/io
 import observer
+import observer/filtered
 import observer/reactive
 import observer/stateful
 import observer/topic
 
-//pub fn main() {
-pub fn run_all_observer_examples() {
+pub fn main() {
+  //pub fn run_all_observer_examples() {
   io.println("Running examples...")
   run_example("Simple Observer", simple_observer)
   run_example("Simple Observer with State", simple_observer_with_state)
   run_example("Reactive Observer", reactive_observer)
   run_example("Single topic-based Observer", single_topic)
   run_example("Multiple topic-based Observer", multiple_topics)
+  run_example("Filtered Observer", filtered_observer)
 }
 
 fn run_example(name: String, example: fn() -> Nil) {
@@ -280,4 +282,44 @@ fn multiple_topics() {
 
   unsubscribe_user_name_age()
   unsubscribe_user_details()
+}
+
+/// This example demonstrates the usage of the filtered observer.
+/// It is an easy way to filter events based on a list of topics.
+/// They work in a simmilar way but you can use generics to filter by any type.
+/// 
+/// Outputs the following:
+/// ```text
+/// [A] | Received an event with value: Hello all!
+/// [B] | Received an event with value: Hello all!
+/// [A] | Received an event with value: Hello A
+/// [B] | Received an event with value: Hello B
+/// ```
+fn filtered_observer() {
+  use hub <- filtered.new3()
+
+  let unsubscribe_a =
+    filtered.subscribe3(hub, [0, 1], ["A", "*"], [Ok(Nil)], fn(value) {
+      io.println("[A] | Received an event with value: " <> value)
+    })
+
+  let unsubscribe_b =
+    filtered.subscribe3(hub, [0, 2], ["B", "*"], [Ok(Nil)], fn(value) {
+      io.println("[B] | Received an event with value: " <> value)
+    })
+
+  // This should notify all subscribers.
+  filtered.notify3(hub, [0], ["*"], [Ok(Nil)], "Hello all!")
+
+  // This should notify only subscriber A.
+  filtered.notify3(hub, [1], ["A", "*"], [Ok(Nil)], "Hello A")
+
+  // This should notify only subscriber B.
+  filtered.notify3(hub, [0, 1, 2], ["B"], [Ok(Nil)], "Hello B")
+
+  // This should notify none.
+  filtered.notify3(hub, [0, 1, 2], ["A", "B", "*"], [Error(Nil)], "Hello C")
+
+  unsubscribe_a()
+  unsubscribe_b()
 }

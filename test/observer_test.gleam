@@ -1,6 +1,7 @@
 import gleeunit
 import gleeunit/should
 import observer
+import observer/filtered
 import observer/reactive
 import observer/stateful
 import observer/topic
@@ -771,6 +772,346 @@ pub fn stateless_hub_in_hub_test() {
   observer.notify(outer_hub, inner_hub)
 
   expect(a, 1)
+
+  Nil
+}
+
+pub fn filtered_with_function_test() {
+  use a <- mut(0)
+  use b <- mut(0)
+
+  let set_a = fn(value) { set(a, value) }
+  let set_b = fn(value) { set(b, value) }
+
+  use hub <- filtered.new()
+
+  let unsubscribe_a = filtered.subscribe(hub, [set_a], set_a)
+  let unsubscribe_b = filtered.subscribe(hub, [set_b], set_b)
+
+  expect(a, 0)
+  expect(b, 0)
+
+  filtered.notify(hub, [set_a], 1)
+
+  expect(a, 1)
+  expect(b, 0)
+
+  filtered.notify(hub, [set_b], 2)
+
+  expect(a, 1)
+  expect(b, 2)
+
+  filtered.notify(hub, [set_a, set_b], 3)
+
+  expect(a, 3)
+  expect(b, 3)
+
+  unsubscribe_a()
+
+  filtered.notify(hub, [set_a, set_b], 4)
+
+  expect(a, 3)
+  expect(b, 4)
+
+  unsubscribe_b()
+
+  filtered.notify(hub, [set_b], 5)
+
+  expect(a, 3)
+  expect(b, 4)
+
+  Nil
+}
+
+pub fn filtered_with_hub_test() {
+  use a <- mut(0)
+  use b <- mut(0)
+
+  let set_a = fn(value) { set(a, value) }
+  let set_b = fn(value) { set(b, value) }
+
+  use hub <- filtered.new()
+  use hub_a <- filtered.new()
+  use hub_b <- filtered.new()
+
+  filtered.subscribe(hub_a, ["a"], fn(_) { Nil })
+  filtered.subscribe(hub_b, ["b"], fn(_) { Nil })
+
+  let unsubscribe_a = filtered.subscribe(hub, [hub_a], set_a)
+  let unsubscribe_b = filtered.subscribe(hub, [hub_b], set_b)
+
+  expect(a, 0)
+  expect(b, 0)
+
+  filtered.notify(hub, [hub_a], 1)
+
+  expect(a, 1)
+  expect(b, 0)
+
+  filtered.notify(hub, [hub_b], 2)
+
+  expect(a, 1)
+  expect(b, 2)
+
+  filtered.notify(hub, [hub_a, hub_b], 3)
+
+  expect(a, 3)
+  expect(b, 3)
+
+  unsubscribe_a()
+
+  filtered.notify(hub, [hub_a, hub_b], 4)
+
+  expect(a, 3)
+  expect(b, 4)
+
+  unsubscribe_b()
+
+  filtered.notify(hub, [hub_b], 5)
+
+  expect(a, 3)
+  expect(b, 4)
+
+  Nil
+}
+
+pub fn filtered_with_result_test() {
+  use a <- mut(0)
+  use b <- mut(0)
+
+  let set_a = fn(value) { set(a, value) }
+  let set_b = fn(value) { set(b, value) }
+
+  use hub <- filtered.new()
+
+  let unsubscribe_a = filtered.subscribe(hub, [Ok(Nil)], set_a)
+  let unsubscribe_b = filtered.subscribe(hub, [Error(Nil)], set_b)
+
+  expect(a, 0)
+  expect(b, 0)
+
+  filtered.notify(hub, [Ok(Nil)], 1)
+
+  expect(a, 1)
+  expect(b, 0)
+
+  filtered.notify(hub, [Error(Nil)], 2)
+
+  expect(a, 1)
+  expect(b, 2)
+
+  filtered.notify(hub, [Ok(Nil), Error(Nil)], 3)
+
+  expect(a, 3)
+  expect(b, 3)
+
+  unsubscribe_a()
+
+  filtered.notify(hub, [Ok(Nil), Error(Nil)], 4)
+
+  expect(a, 3)
+  expect(b, 4)
+
+  unsubscribe_b()
+
+  filtered.notify(hub, [Error(Nil)], 5)
+
+  expect(a, 3)
+  expect(b, 4)
+
+  Nil
+}
+
+pub fn filtered3_test() {
+  use a <- mut(0)
+  use b <- mut(0)
+
+  use hub <- filtered.new3()
+
+  let unsubscribe_a =
+    filtered.subscribe3(hub, [1], ["a", "*"], [Ok(Nil)], fn(value) {
+      set(a, value)
+    })
+
+  let unsubscribe_b =
+    filtered.subscribe3(hub, [2], ["b", "*"], [Ok(Nil)], fn(value) {
+      set(b, value)
+    })
+
+  filtered.notify3(hub, [1], ["a", "b"], [Ok(Nil)], 1)
+
+  expect(a, 1)
+  expect(b, 0)
+
+  filtered.notify3(hub, [2], ["a", "b"], [Ok(Nil)], 2)
+
+  expect(a, 1)
+  expect(b, 2)
+
+  filtered.notify3(hub, [1, 2], ["*"], [Ok(Nil)], 3)
+
+  expect(a, 3)
+  expect(b, 3)
+
+  filtered.notify3(hub, [1, 2], ["a", "b", "c", "*"], [Ok(Nil)], 4)
+
+  expect(a, 4)
+  expect(b, 4)
+
+  filtered.notify3(hub, [1], ["a", "b", "c", "*"], [Ok(Nil)], 5)
+
+  expect(a, 5)
+  expect(b, 4)
+
+  filtered.notify3(hub, [2], ["a", "b", "c", "*"], [Ok(Nil)], 6)
+
+  expect(a, 5)
+  expect(b, 6)
+
+  unsubscribe_a()
+
+  filtered.notify3(hub, [1, 2], ["*"], [Error(Nil)], 7)
+
+  expect(a, 5)
+  expect(b, 6)
+
+  filtered.notify3(hub, [1, 2], ["*"], [Ok(Nil)], 8)
+
+  expect(a, 5)
+  expect(b, 8)
+
+  unsubscribe_b()
+
+  Nil
+}
+
+pub fn filtered4_test() {
+  use a <- mut(0)
+  use b <- mut(0)
+  use c <- mut(0)
+
+  use hub <- filtered.new4()
+
+  expect(a, 0)
+  expect(b, 0)
+  expect(c, 0)
+
+  filtered.notify4(hub, ["x"], ["y"], ["z"], ["a"], 1)
+
+  expect(a, 0)
+  expect(b, 0)
+  expect(c, 0)
+
+  let unsubscribe_a =
+    filtered.subscribe4(hub, ["x"], ["y"], ["z"], ["a", "*", "ab"], fn(value) {
+      set(a, value)
+    })
+
+  expect(a, 0)
+  expect(b, 0)
+  expect(c, 0)
+
+  filtered.notify4(hub, ["x"], ["y"], ["z"], ["a", "c"], 2)
+
+  expect(a, 2)
+  expect(b, 0)
+  expect(c, 0)
+
+  let unsubscribe_b =
+    filtered.subscribe4(hub, ["x"], ["y"], ["z"], ["b", "*", "ab"], fn(value) {
+      set(b, value)
+    })
+
+  expect(a, 2)
+  expect(b, 0)
+  expect(c, 0)
+
+  filtered.notify4(hub, ["x"], ["y"], ["z"], ["*"], 3)
+
+  expect(a, 3)
+  expect(b, 3)
+  expect(c, 0)
+
+  let unsubscribe_c =
+    filtered.subscribe4(hub, ["x"], ["y"], ["z"], ["c", "*"], fn(value) {
+      set(c, value)
+    })
+
+  expect(a, 3)
+  expect(b, 3)
+  expect(c, 0)
+
+  filtered.notify4(hub, ["x"], ["y"], ["z"], ["ab", "a"], 4)
+
+  expect(a, 4)
+  expect(b, 4)
+  expect(c, 0)
+
+  filtered.notify4(hub, ["x"], ["y"], ["z"], ["a", "c"], 5)
+
+  expect(a, 5)
+  expect(b, 4)
+  expect(c, 5)
+
+  filtered.notify4(hub, ["x"], ["y"], ["z"], ["c", "d"], 6)
+
+  expect(a, 5)
+  expect(b, 4)
+  expect(c, 6)
+
+  filtered.notify4(hub, ["x"], ["y"], ["z"], ["a"], 7)
+
+  expect(a, 7)
+  expect(b, 4)
+  expect(c, 6)
+
+  filtered.notify4(hub, ["x"], ["y"], ["z"], [], 8)
+
+  expect(a, 7)
+  expect(b, 4)
+  expect(c, 6)
+
+  filtered.notify4(hub, ["x"], ["y"], ["z"], ["*"], 9)
+
+  expect(a, 9)
+  expect(b, 9)
+  expect(c, 9)
+
+  unsubscribe_a()
+
+  expect(a, 9)
+  expect(b, 9)
+  expect(c, 9)
+
+  filtered.notify4(hub, ["x"], ["y"], ["z"], ["ab"], 10)
+
+  expect(a, 9)
+  expect(b, 10)
+  expect(c, 9)
+
+  unsubscribe_b()
+
+  expect(a, 9)
+  expect(b, 10)
+  expect(c, 9)
+
+  filtered.notify4(hub, ["x"], ["y"], ["z"], ["ab"], 11)
+
+  expect(a, 9)
+  expect(b, 10)
+  expect(c, 9)
+
+  unsubscribe_c()
+
+  expect(a, 9)
+  expect(b, 10)
+  expect(c, 9)
+
+  filtered.notify4(hub, ["x"], ["y"], ["z"], ["a", "b", "c"], 11)
+
+  expect(a, 9)
+  expect(b, 10)
+  expect(c, 9)
 
   Nil
 }
