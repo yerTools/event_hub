@@ -41,7 +41,7 @@ import observer/topic
 ### Simple Observer
 
 ````gleam
-/// A simple obeserver implementation.
+/// A simple observer implementation.
 /// This example demonstrates the basic usage of the observer library.
 /// It is an easy way to use publishers and subscribers to handle events.
 ///
@@ -55,7 +55,7 @@ fn simple_observer() {
   // Creates a new hub for distributing events.
   use hub <- observer.new()
 
-  // Notifies all subscrivers of the hub that an event has occurred.
+  // Notifies all subscribers of the hub that an event has occurred.
   observer.notify(hub, 1)
 
   // You can forward the hub to other functions or components.
@@ -110,7 +110,7 @@ fn simple_observer_with_state() {
   let current_state = stateful.state(hub)
   io.println("Current state: " <> current_state)
 
-  // Notifies all subscrivers of the hub that an event has occurred.
+  // Notifies all subscribers of the hub that an event has occurred.
   stateful.notify(hub, "test value")
 
   // See that the state has changed.
@@ -120,11 +120,11 @@ fn simple_observer_with_state() {
   // You can forward the hub to other functions or components.
   {
     // Using syntactic sugar for handling the callback.
-    // With the second argument you can specify whether the callback should be called with the current state.
+    // With the second argument, you can specify whether the callback should be called with the current state.
     use value <- stateful.subscribe(hub, True)
 
     // This function gets called when the hub receives an event.
-    // In this case, it prints the current state, because the second argument was `True`.
+    // In this case, it prints the current state because the second argument was `True`.
     io.println("[1] | Received an event with value: " <> value)
   }
 
@@ -155,8 +155,8 @@ fn simple_observer_with_state() {
 
 ````gleam
 /// A simple reactive observer implementation.
-/// This can be used to bradcast things that constantly change like the current time to clients.
-/// Another use case would be to breadcast database updates to listeners.
+/// This can be used to broadcast things that constantly change like the current time to clients.
+/// Another use case would be to broadcast database updates to listeners.
 ///
 /// Outputs the following:
 /// ```text
@@ -193,14 +193,14 @@ fn reactive_observer() {
     })
 
   // Notifies all subscribers of the hub that the current time has changed.
-  // This will call the provided function when the hub was created and broadcasts the return value.
+  // This will call the provided function when the hub was created and broadcast the return value.
   reactive.notify(time_hub)
 
   // Unsubscribes from the hub.
   unsubscribe_b()
 
   // Notifies all subscribers again.
-  // If a real time function is used, the current time will be updated.
+  // If a real-time function is used, the current time will be updated.
   reactive.notify(time_hub)
 
   // Unsubscribe all subscribers.
@@ -224,9 +224,9 @@ fn reactive_observer() {
 /// [C] | Received an event with value: Hello all!
 /// [A] | Received an event with value: Hello AB!
 /// [B] | Received an event with value: Hello AB!
-/// [A] | Received an event with value: Hello A, AB, B, C and all!
-/// [B] | Received an event with value: Hello A, AB, B, C and all!
-/// [C] | Received an event with value: Hello A, AB, B, C and all!
+/// [A] | Received an event with value: Hello A, AB, B, C, and all!
+/// [B] | Received an event with value: Hello A, AB, B, C, and all!
+/// [C] | Received an event with value: Hello A, AB, B, C, and all!
 /// ```
 fn single_topic() {
   use hub <- topic.new()
@@ -259,7 +259,7 @@ fn single_topic() {
   topic.notify(hub, ["ab"], "Hello AB!")
 
   // Notifies listeners with the topics `"a"`, `"ab"`, `"b"`, `"c"` and `"*"`.
-  topic.notify(hub, ["a", "ab", "b", "c", "*"], "Hello A, AB, B, C and all!")
+  topic.notify(hub, ["a", "ab", "b", "c", "*"], "Hello A, AB, B, C, and all!")
 
   // Unsubscribe all listeners.
   unsubscribe_a()
@@ -274,7 +274,7 @@ fn single_topic() {
 /// Example of using multiple topics.
 /// This can be used for advanced filtering and grouping of events.
 /// A possible example would be to propagate database changes to listeners.
-/// In this case the first topic would be the table name and the second topics could be the column names.
+/// In this case, the first topic would be the table name and the second topics could be the column names.
 ///
 /// Outputs the following:
 /// ```text
@@ -293,7 +293,7 @@ fn multiple_topics() {
       io.println("[User: name, age] | Received an event with value: " <> value)
     })
 
-  // Creates a listener for the `"user"` table and the column `"name"`, `"age"` and `"email"`.
+  // Creates a listener for the `"user"` table and the columns `"name"`, `"age"` and `"email"`.
   let unsubscribe_user_details =
     topic.subscribe2(hub, ["user"], ["name", "age", "email", "*"], fn(value) {
       io.println(
@@ -320,7 +320,7 @@ fn multiple_topics() {
 ````gleam
 /// This example demonstrates the usage of the filtered observer.
 /// It is an easy way to filter events based on a list of topics.
-/// They work in a simmilar way but you can use generics to filter by any type.
+/// They work in a similar way, but you can use generics to filter by any type.
 ///
 /// Outputs the following:
 /// ```text
