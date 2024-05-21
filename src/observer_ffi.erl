@@ -79,25 +79,14 @@ find_matching_callbacks(TopicIndex, Topics, Callbacks) ->
         Topics
     ),
     UniqueSubscriberIndices = lists:usort(SubscriberIndices),
-    Result = lists:foldl(
+    lists:foldl(
         fun(Index, Acc) ->
             {_, FoundCallback} = maps:get(Index, Callbacks),
             Acc#{Index => FoundCallback}
         end,
         #{},
         UniqueSubscriberIndices
-    ),
-    Result.
-%    lists:foldl(
-%        fun(Index, Acc) ->
-%            case maps:get(Index, Callbacks, undefined) of
-%                {Topics, Callback} -> Acc#{Index => Callback};
-%                undefined -> Acc
-%            end
-%        end,
-%        #{},
-%        UniqueSubscriberIndices
-%    ).
+    ).
 
 %% Stateless observer
 %% ==================
