@@ -6,8 +6,8 @@ import observer/reactive
 import observer/stateful
 import observer/topic
 
-pub fn main() {
-  //pub fn run_all_observer_examples() {
+//pub fn main() {
+pub fn run_all_observer_examples() {
   io.println("Running examples...")
   run_example("Simple Observer", simple_observer)
   run_example("Simple Observer with State", simple_observer_with_state)
