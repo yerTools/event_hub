@@ -43,50 +43,92 @@ wait_for_monitors([Ref | Rest]) ->
     end.
 
 %% Updates the topic index with a new subscription.
-update_topic_index(TopicIndex, Topics, Index) ->
-    lists:foldl(
-        fun(Topic, Acc) ->
-            SubscriberIndices = maps:get(Topic, Acc, []),
-            Acc#{Topic => [Index | SubscriberIndices]}
-        end,
-        TopicIndex,
-        Topics
-    ).
+update_topic_index(TopicIndex, TopicsList, Index) ->
+    case TopicsList of
+        [] ->
+            TopicIndex;
+        [Topics | Rest] ->
+            lists:foldl(
+                fun(Topic, Acc) ->
+                    {SubscriberIndices, Next} = maps:get(Topic, Acc, {[], #{}}),
+                    NewSubscriberIndices =
+                        case Rest of
+                            [] ->
+                                [Index | SubscriberIndices];
+                            _ ->
+                                SubscriberIndices
+                        end,
+                    Acc#{Topic => {NewSubscriberIndices, update_topic_index(Next, Rest, Index)}}
+                end,
+                TopicIndex,
+                Topics
+            )
+    end.
 
 %% Removes a subscription from the topic index.
-remove_from_topic_index(TopicIndex, Topics, Index) ->
-    lists:foldl(
-        fun(Topic, Acc) ->
-            SubscriberIndices = maps:get(Topic, Acc, []),
-            NewSubscriberIndices = lists:delete(Index, SubscriberIndices),
-            if
-                NewSubscriberIndices =:= [] ->
-                    maps:remove(Topic, Acc);
-                true ->
-                    Acc#{Topic => NewSubscriberIndices}
-            end
-        end,
-        TopicIndex,
-        Topics
-    ).
+remove_from_topic_index(TopicIndex, TopicsList, Index) ->
+    case TopicsList of
+        [] ->
+            TopicIndex;
+        [Topics | Rest] ->
+            lists:foldl(
+                fun(Topic, Acc) ->
+                    {SubscriberIndices, Next} = maps:get(Topic, Acc, {[], #{}}),
+                    NewSubscriberIndices =
+                        case Rest of
+                            [] ->
+                                lists:delete(Index, SubscriberIndices);
+                            _ ->
+                                SubscriberIndices
+                        end,
+
+                    case {NewSubscriberIndices =:= [], maps:size(Next) == 0} of
+                        {true, true} ->
+                            maps:remove(Topic, Acc);
+                        _ ->
+                            Acc#{
+                                Topic =>
+                                    {NewSubscriberIndices,
+                                        remove_from_topic_index(Next, Rest, Index)}
+                            }
+                    end
+                end,
+                TopicIndex,
+                Topics
+            )
+    end.
 
 %% Finds callbacks whose topics intersect with the provided topics.
-find_matching_callbacks(TopicIndex, Topics, Callbacks) ->
-    SubscriberIndices = lists:flatmap(
-        fun(Topic) ->
-            maps:get(Topic, TopicIndex, [])
-        end,
-        Topics
-    ),
-    UniqueSubscriberIndices = lists:usort(SubscriberIndices),
-    lists:foldl(
-        fun(Index, Acc) ->
-            {_, FoundCallback} = maps:get(Index, Callbacks),
-            Acc#{Index => FoundCallback}
-        end,
-        #{},
-        UniqueSubscriberIndices
-    ).
+find_matching_callbacks(TopicIndex, TopicsList, Callbacks) ->
+    case TopicsList of
+        [] ->
+            #{};
+        [Topics] ->
+            SubscriberIndices = lists:flatmap(
+                fun(Topic) ->
+                    {Indices, _} = maps:get(Topic, TopicIndex, {[], #{}}),
+                    Indices
+                end,
+                Topics
+            ),
+            lists:foldl(
+                fun(Index, Acc) ->
+                    {_, FoundCallback} = maps:get(Index, Callbacks),
+                    Acc#{Index => FoundCallback}
+                end,
+                #{},
+                SubscriberIndices
+            );
+        [Topics | Rest] ->
+            lists:foldl(
+                fun(Topic, Acc) ->
+                    {_, Next} = maps:get(Topic, TopicIndex, {[], #{}}),
+                    maps:merge(Acc, find_matching_callbacks(Next, Rest, Callbacks))
+                end,
+                #{},
+                Topics
+            )
+    end.
 
 %% Stateless observer
 %% ==================

@@ -281,7 +281,7 @@ pub fn stateful_with_subscription_notification_test() {
   Nil
 }
 
-pub fn topic_based_test() {
+pub fn topic_based1_test() {
   use a <- mut(0)
   use b <- mut(0)
   use c <- mut(0)
@@ -292,76 +292,332 @@ pub fn topic_based_test() {
   expect(b, 0)
   expect(c, 0)
 
-  topic.notify(hub, ["a"], 1)
+  topic.notify(hub, ["x"], 1)
+
+  expect(a, 0)
+  expect(b, 0)
+  expect(c, 0)
+
+  let unsubscribe_a = topic.subscribe(hub, ["x"], fn(value) { set(a, value) })
+
+  let unsubscribe_b = topic.subscribe(hub, ["y"], fn(value) { set(b, value) })
+
+  let unsubscribe_c = topic.subscribe(hub, ["z"], fn(value) { set(c, value) })
+
+  expect(a, 0)
+  expect(b, 0)
+  expect(c, 0)
+
+  topic.notify(hub, ["x"], 2)
+
+  expect(a, 2)
+  expect(b, 0)
+  expect(c, 0)
+
+  topic.notify(hub, ["y"], 3)
+
+  expect(a, 2)
+  expect(b, 3)
+  expect(c, 0)
+
+  topic.notify(hub, ["z"], 4)
+
+  expect(a, 2)
+  expect(b, 3)
+  expect(c, 4)
+
+  unsubscribe_a()
+  unsubscribe_b()
+  unsubscribe_c()
+
+  topic.notify(hub, ["x"], 5)
+  topic.notify(hub, ["y"], 6)
+  topic.notify(hub, ["z"], 7)
+
+  expect(a, 2)
+  expect(b, 3)
+  expect(c, 4)
+
+  Nil
+}
+
+pub fn topic_based2_test() {
+  use a <- mut(0)
+  use b <- mut(0)
+  use c <- mut(0)
+
+  use hub <- topic.new2()
+
+  expect(a, 0)
+  expect(b, 0)
+  expect(c, 0)
+
+  topic.notify2(hub, ["x"], ["y"], 1)
 
   expect(a, 0)
   expect(b, 0)
   expect(c, 0)
 
   let unsubscribe_a =
-    topic.subscribe(hub, ["a", "*", "ab"], fn(value) { set(a, value) })
+    topic.subscribe2(hub, ["x"], ["y"], fn(value) { set(a, value) })
+
+  let unsubscribe_b =
+    topic.subscribe2(hub, ["x"], ["z"], fn(value) { set(b, value) })
+
+  let unsubscribe_c =
+    topic.subscribe2(hub, ["y"], ["z"], fn(value) { set(c, value) })
+
+  topic.notify2(hub, ["x"], ["y"], 2)
+  topic.notify2(hub, ["x"], ["z"], 3)
+  topic.notify2(hub, ["y"], ["z"], 4)
+
+  expect(a, 2)
+  expect(b, 3)
+  expect(c, 4)
+
+  unsubscribe_a()
+  unsubscribe_b()
+  unsubscribe_c()
+
+  topic.notify2(hub, ["x"], ["y"], 5)
+  topic.notify2(hub, ["x"], ["z"], 6)
+  topic.notify2(hub, ["y"], ["z"], 7)
+
+  expect(a, 2)
+  expect(b, 3)
+  expect(c, 4)
+
+  Nil
+}
+
+pub fn topic_based3_test() {
+  use a <- mut(0)
+  use b <- mut(0)
+  use c <- mut(0)
+  use d <- mut(0)
+
+  use hub <- topic.new3()
+
+  expect(a, 0)
+  expect(b, 0)
+  expect(c, 0)
+  expect(d, 0)
+
+  topic.notify3(hub, ["x"], ["y"], ["z"], 1)
+
+  expect(a, 0)
+  expect(b, 0)
+  expect(c, 0)
+  expect(d, 0)
+
+  let unsubscribe_a =
+    topic.subscribe3(hub, ["x"], ["y"], ["z"], fn(value) { set(a, value) })
+
+  let unsubscribe_b =
+    topic.subscribe3(hub, ["x"], ["y"], ["w"], fn(value) { set(b, value) })
+
+  let unsubscribe_c =
+    topic.subscribe3(hub, ["x"], ["z"], ["w"], fn(value) { set(c, value) })
+
+  let unsubscribe_d =
+    topic.subscribe3(hub, ["y"], ["z"], ["w"], fn(value) { set(d, value) })
+
+  topic.notify3(hub, ["x"], ["y"], ["z"], 2)
+  topic.notify3(hub, ["x"], ["y"], ["w"], 3)
+  topic.notify3(hub, ["x"], ["z"], ["w"], 4)
+  topic.notify3(hub, ["y"], ["z"], ["w"], 5)
+
+  expect(a, 2)
+  expect(b, 3)
+  expect(c, 4)
+  expect(d, 5)
+
+  unsubscribe_a()
+  unsubscribe_b()
+  unsubscribe_c()
+  unsubscribe_d()
+
+  topic.notify3(hub, ["x"], ["y"], ["z"], 6)
+  topic.notify3(hub, ["x"], ["y"], ["w"], 7)
+  topic.notify3(hub, ["x"], ["z"], ["w"], 8)
+  topic.notify3(hub, ["y"], ["z"], ["w"], 9)
+
+  expect(a, 2)
+  expect(b, 3)
+  expect(c, 4)
+  expect(d, 5)
+
+  Nil
+}
+
+pub fn topic_based_n_test() {
+  use a <- mut(0)
+  use b <- mut(0)
+  use c <- mut(0)
+  use d <- mut(0)
+  use e <- mut(0)
+
+  use hub <- topic.new_n()
+
+  expect(a, 0)
+  expect(b, 0)
+  expect(c, 0)
+  expect(d, 0)
+  expect(e, 0)
+
+  topic.notify_n(hub, [["x"], ["y"], ["z"], ["w"]], 1)
+
+  expect(a, 0)
+  expect(b, 0)
+  expect(c, 0)
+  expect(d, 0)
+  expect(e, 0)
+
+  let unsubscribe_a =
+    topic.subscribe_n(hub, [["x"], ["y"], ["z"], ["w"]], fn(value) {
+      set(a, value)
+    })
+
+  let unsubscribe_b =
+    topic.subscribe_n(hub, [["x"], ["y"], ["z"], ["v"]], fn(value) {
+      set(b, value)
+    })
+
+  let unsubscribe_c =
+    topic.subscribe_n(hub, [["x"], ["y"], ["v"], ["w"]], fn(value) {
+      set(c, value)
+    })
+
+  let unsubscribe_d =
+    topic.subscribe_n(hub, [["x"], ["v"], ["z"], ["w"]], fn(value) {
+      set(d, value)
+    })
+
+  let unsubscribe_e =
+    topic.subscribe_n(hub, [["v"], ["y"], ["z"], ["w"]], fn(value) {
+      set(e, value)
+    })
+
+  topic.notify_n(hub, [["x"], ["y"], ["z"], ["w"]], 2)
+  topic.notify_n(hub, [["x"], ["y"], ["z"], ["v"]], 3)
+  topic.notify_n(hub, [["x"], ["y"], ["v"], ["w"]], 4)
+  topic.notify_n(hub, [["x"], ["v"], ["z"], ["w"]], 5)
+  topic.notify_n(hub, [["v"], ["y"], ["z"], ["w"]], 6)
+
+  expect(a, 2)
+  expect(b, 3)
+  expect(c, 4)
+  expect(d, 5)
+  expect(e, 6)
+
+  unsubscribe_a()
+  unsubscribe_b()
+  unsubscribe_c()
+  unsubscribe_d()
+  unsubscribe_e()
+
+  topic.notify_n(hub, [["x"], ["y"], ["z"], ["w"]], 7)
+  topic.notify_n(hub, [["x"], ["y"], ["z"], ["v"]], 8)
+  topic.notify_n(hub, [["x"], ["y"], ["v"], ["w"]], 9)
+  topic.notify_n(hub, [["x"], ["v"], ["z"], ["w"]], 10)
+  topic.notify_n(hub, [["v"], ["y"], ["z"], ["w"]], 11)
+
+  expect(a, 2)
+  expect(b, 3)
+  expect(c, 4)
+  expect(d, 5)
+  expect(e, 6)
+
+  Nil
+}
+
+pub fn topic_based4_test() {
+  use a <- mut(0)
+  use b <- mut(0)
+  use c <- mut(0)
+
+  use hub <- topic.new4()
 
   expect(a, 0)
   expect(b, 0)
   expect(c, 0)
 
-  topic.notify(hub, ["a", "c"], 2)
+  topic.notify4(hub, ["x"], ["y"], ["z"], ["a"], 1)
+
+  expect(a, 0)
+  expect(b, 0)
+  expect(c, 0)
+
+  let unsubscribe_a =
+    topic.subscribe4(hub, ["x"], ["y"], ["z"], ["a", "*", "ab"], fn(value) {
+      set(a, value)
+    })
+
+  expect(a, 0)
+  expect(b, 0)
+  expect(c, 0)
+
+  topic.notify4(hub, ["x"], ["y"], ["z"], ["a", "c"], 2)
 
   expect(a, 2)
   expect(b, 0)
   expect(c, 0)
 
   let unsubscribe_b =
-    topic.subscribe(hub, ["b", "*", "ab"], fn(value) { set(b, value) })
+    topic.subscribe4(hub, ["x"], ["y"], ["z"], ["b", "*", "ab"], fn(value) {
+      set(b, value)
+    })
 
   expect(a, 2)
   expect(b, 0)
   expect(c, 0)
 
-  topic.notify(hub, ["*"], 3)
+  topic.notify4(hub, ["x"], ["y"], ["z"], ["*"], 3)
 
   expect(a, 3)
   expect(b, 3)
   expect(c, 0)
 
   let unsubscribe_c =
-    topic.subscribe(hub, ["c", "*"], fn(value) { set(c, value) })
+    topic.subscribe4(hub, ["x"], ["y"], ["z"], ["c", "*"], fn(value) {
+      set(c, value)
+    })
 
   expect(a, 3)
   expect(b, 3)
   expect(c, 0)
 
-  topic.notify(hub, ["ab", "a"], 4)
+  topic.notify4(hub, ["x"], ["y"], ["z"], ["ab", "a"], 4)
 
   expect(a, 4)
   expect(b, 4)
   expect(c, 0)
 
-  topic.notify(hub, ["a", "c"], 5)
+  topic.notify4(hub, ["x"], ["y"], ["z"], ["a", "c"], 5)
 
   expect(a, 5)
   expect(b, 4)
   expect(c, 5)
 
-  topic.notify(hub, ["c", "d"], 6)
+  topic.notify4(hub, ["x"], ["y"], ["z"], ["c", "d"], 6)
 
   expect(a, 5)
   expect(b, 4)
   expect(c, 6)
 
-  topic.notify(hub, ["a"], 7)
+  topic.notify4(hub, ["x"], ["y"], ["z"], ["a"], 7)
 
   expect(a, 7)
   expect(b, 4)
   expect(c, 6)
 
-  topic.notify(hub, [], 8)
+  topic.notify4(hub, ["x"], ["y"], ["z"], [], 8)
 
   expect(a, 7)
   expect(b, 4)
   expect(c, 6)
 
-  topic.notify(hub, ["*"], 9)
+  topic.notify4(hub, ["x"], ["y"], ["z"], ["*"], 9)
 
   expect(a, 9)
   expect(b, 9)
@@ -373,7 +629,7 @@ pub fn topic_based_test() {
   expect(b, 9)
   expect(c, 9)
 
-  topic.notify(hub, ["ab"], 10)
+  topic.notify4(hub, ["x"], ["y"], ["z"], ["ab"], 10)
 
   expect(a, 9)
   expect(b, 10)
@@ -385,7 +641,7 @@ pub fn topic_based_test() {
   expect(b, 10)
   expect(c, 9)
 
-  topic.notify(hub, ["ab"], 11)
+  topic.notify4(hub, ["x"], ["y"], ["z"], ["ab"], 11)
 
   expect(a, 9)
   expect(b, 10)
@@ -397,7 +653,7 @@ pub fn topic_based_test() {
   expect(b, 10)
   expect(c, 9)
 
-  topic.notify(hub, ["a", "b", "c"], 11)
+  topic.notify4(hub, ["x"], ["y"], ["z"], ["a", "b", "c"], 11)
 
   expect(a, 9)
   expect(b, 10)

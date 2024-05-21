@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * @template T
  * @typedef {(value: T) => void} Callback
@@ -6,6 +7,21 @@
 /**
  * @template T
  * @typedef  {{[index: number]: Callback<T>}} Callbacks
+ */
+
+/**
+ * @template T
+ * @typedef  {{[index: number]: [string[][], Callback<T>]}} TopicCallbacks
+ */
+
+/**
+ * @template T
+ * @typedef {{ indices: number[], next: TopicIndex<T>}} TopicIndexEntry
+ */
+
+/**
+ * @template T
+ * @typedef {{[topic: string]: TopicIndexEntry<T>}} TopicIndex
  */
 
 /**
@@ -20,7 +36,7 @@
 
 /**
  * @template T
- * @typedef {{callbacks: Callbacks<T>, index: number, topicIndex: {[topic: string]: number[]}}} TopicBasedHub
+ * @typedef {{callbacks: TopicCallbacks<T>, index: number, topicIndex: TopicIndex<T>}} TopicBasedHub
  */
 
 // Helper functions
@@ -40,63 +56,100 @@ function invokeCallbacks(callbacks, value) {
 
 /**
  * Updates the topic index with a new subscription.
- * @param {{[topic: string]: number[]}} topicIndex
- * @param {string[]} topics
+ * @template T
+ * @param {TopicIndex<T>} topicIndex
+ * @param {string[][]} topics
  * @param {number} index
- * @returns {{[topic: string]: number[]}}
  */
 function updateTopicIndex(topicIndex, topics, index) {
-  const newTopicIndex = { ...topicIndex };
-  for (const topic of topics) {
-    if (!newTopicIndex[topic]) {
-      newTopicIndex[topic] = [];
+  if (topics.length !== 0) {
+    const [first, ...rest] = topics;
+
+    for (const topic of first) {
+      if (!topicIndex[topic]) {
+        topicIndex[topic] = { indices: [], next: {} };
+      }
+      if (rest.length === 0) {
+        topicIndex[topic].indices.push(index);
+      } else {
+        updateTopicIndex(topicIndex[topic].next, rest, index);
+      }
     }
-    newTopicIndex[topic].push(index);
   }
-  return newTopicIndex;
 }
 
 /**
  * Removes a subscription from the topic index.
- * @param {{[topic: string]: number[]}} topicIndex
- * @param {string[]} topics
+ * @template T
+ * @param {TopicIndex<T>} topicIndex
+ * @param {string[][]} topics
  * @param {number} index
- * @returns {{[topic: string]: number[]}}
  */
 function removeFromTopicIndex(topicIndex, topics, index) {
-  const newTopicIndex = { ...topicIndex };
-  for (const topic of topics) {
-    if (newTopicIndex[topic]) {
-      newTopicIndex[topic] = newTopicIndex[topic].filter((i) => i !== index);
-      if (newTopicIndex[topic].length === 0) {
-        delete newTopicIndex[topic];
+  if (topics.length !== 0) {
+    const [first, ...rest] = topics;
+
+    for (const topic of first) {
+      if (topicIndex[topic]) {
+        if (rest.length === 0) {
+          const indices = topicIndex[topic].indices;
+          const newIndices = indices.filter((i) => i !== index);
+          topicIndex[topic].indices = newIndices;
+
+          if (
+            newIndices.length === 0 &&
+            Object.keys(topicIndex[topic].next).length === 0
+          ) {
+            delete topicIndex[topic];
+          }
+        } else {
+          removeFromTopicIndex(topicIndex[topic].next, rest, index);
+        }
       }
     }
   }
-  return newTopicIndex;
 }
 
 /**
  * Finds callbacks whose topics intersect with the provided topics.
  * @template T
- * @param {{[topic: string]: number[]}} topicIndex
- * @param {string[]} topics
- * @param {Callbacks<T>} callbacks
+ * @param {TopicIndex<T>} topicIndex
+ * @param {string[][]} topics
+ * @param {TopicCallbacks<T>} callbacks
  * @returns {Callbacks<T>}
  */
 function findMatchingCallbacks(topicIndex, topics, callbacks) {
-  const matchingIndices = new Set();
-  for (const topic of topics) {
-    if (topicIndex[topic]) {
-      for (const index of topicIndex[topic]) {
-        matchingIndices.add(index);
+  if (topics.length === 0) {
+    return {};
+  }
+
+  /** @type {Callbacks<T>} */
+  const matchingCallbacks = {};
+  const [first, ...rest] = topics;
+
+  for (const topic of first) {
+    if (rest.length === 0) {
+      if (topicIndex[topic]) {
+        for (const index of topicIndex[topic].indices) {
+          matchingCallbacks[index] = callbacks[index][1];
+        }
+      }
+    } else {
+      if (!topicIndex[topic]) {
+        continue;
+      }
+
+      const next = findMatchingCallbacks(
+        topicIndex[topic].next,
+        rest,
+        callbacks,
+      );
+      for (const [index, callback] of Object.entries(next)) {
+        matchingCallbacks[index] = callback;
       }
     }
   }
-  const matchingCallbacks = {};
-  for (const index of matchingIndices) {
-    matchingCallbacks[index] = callbacks[index];
-  }
+
   return matchingCallbacks;
 }
 
@@ -227,6 +280,7 @@ export function removeStateful(hub, index) {
 export function stopStateful(hub) {
   hub.callbacks = {};
   hub.index = 0;
+  // @ts-ignore
   hub.value = undefined;
 }
 
@@ -250,14 +304,17 @@ export function startTopicBased() {
  * Adds a callback with a list of topics to the topic-based observer, returning the index.
  * @template T
  * @param {TopicBasedHub<T>} hub
- * @param {string[]} topics
+ * @param {string[][]} topics
  * @param {Callback<T>} callback
  * @returns {number}
  */
 export function addTopicBased(hub, topics, callback) {
+  topics = [...topics];
+
   hub.index++;
-  hub.callbacks[hub.index] = callback;
-  hub.topicIndex = updateTopicIndex(hub.topicIndex, topics, hub.index);
+  hub.callbacks[hub.index] = [topics, callback];
+
+  updateTopicIndex(hub.topicIndex, topics, hub.index);
   return hub.index;
 }
 
@@ -265,10 +322,12 @@ export function addTopicBased(hub, topics, callback) {
  * Invokes all matching callbacks synchronously with the given topics and value.
  * @template T
  * @param {TopicBasedHub<T>} hub
- * @param {string[]} topics
+ * @param {string[][]} topics
  * @param {T} value
  */
 export function invokeTopicBased(hub, topics, value) {
+  topics = [...topics];
+
   const matchingCallbacks = findMatchingCallbacks(
     hub.topicIndex,
     topics,
@@ -284,10 +343,12 @@ export function invokeTopicBased(hub, topics, value) {
  * @param {number} index
  */
 export function removeTopicBased(hub, index) {
-  const topics = Object.keys(hub.topicIndex).filter((topic) =>
-    hub.topicIndex[topic].includes(index),
-  );
-  hub.topicIndex = removeFromTopicIndex(hub.topicIndex, topics, index);
+  if (!hub.callbacks[index]) {
+    return;
+  }
+
+  const topics = hub.callbacks[index][0];
+  removeFromTopicIndex(hub.topicIndex, topics, index);
   delete hub.callbacks[index];
 }
 
