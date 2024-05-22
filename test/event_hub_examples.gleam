@@ -1,12 +1,12 @@
+import event_hub
+import event_hub/filtered
+import event_hub/reactive
+import event_hub/stateful
+import event_hub/topic
 import gleam/int
 import gleam/io
-import observer
-import observer/filtered
-import observer/reactive
-import observer/stateful
-import observer/topic
 
-pub fn run_all_observer_examples() {
+pub fn run_all_event_hub_examples() {
   io.println("Running examples...")
   run_example("Simple Observer", simple_observer)
   run_example("Simple Observer with State", simple_observer_with_state)
@@ -27,7 +27,7 @@ fn run_example(name: String, example: fn() -> Nil) {
 }
 
 /// A simple observer implementation.
-/// This example demonstrates the basic usage of the observer library.
+/// This example demonstrates the basic usage of the Event-Hub library.
 /// It is an easy way to use publishers and subscribers to handle events.
 /// 
 /// Outputs the following:
@@ -38,15 +38,15 @@ fn run_example(name: String, example: fn() -> Nil) {
 /// ```
 fn simple_observer() {
   // Creates a new hub for distributing events.
-  use hub <- observer.new()
+  use hub <- event_hub.new()
 
   // Notifies all subscribers of the hub that an event has occurred.
-  observer.notify(hub, 1)
+  event_hub.notify(hub, 1)
 
   // You can forward the hub to other functions or components.
   {
     // Using syntactic sugar for handling the callback.
-    use value <- observer.subscribe(hub)
+    use value <- event_hub.subscribe(hub)
 
     // This function gets called when the hub receives an event.
     io.println("[1] | Received an event with value: " <> int.to_string(value))
@@ -55,23 +55,23 @@ fn simple_observer() {
   // You can also subscribe using a normal callback function.
   // This also returns an unsubscribe function.
   let unsubscribe =
-    observer.subscribe(hub, fn(value) {
+    event_hub.subscribe(hub, fn(value) {
       io.println("[2] | Received an event with value: " <> int.to_string(value))
     })
 
   // Notifies all subscribers of the hub that an event has occurred with the value `2`.
   // These notifications occur in parallel but notify waits for all of them to complete.
-  observer.notify(hub, 2)
+  event_hub.notify(hub, 2)
 
   // Unsubscribe if you no longer need to receive events.
   unsubscribe()
 
   // Notify again to demonstrate that the unsubscribe function works.
-  observer.notify(hub, 3)
+  event_hub.notify(hub, 3)
 }
 
 /// A simple stateful observer implementation.
-/// This is like the previous example, but it uses a stateful observer.
+/// This is like the previous example, but it uses a stateful event_hub.
 /// 
 /// Outputs the following:
 /// ```text
@@ -283,7 +283,7 @@ fn multiple_topics() {
   unsubscribe_user_details()
 }
 
-/// This example demonstrates the usage of the filtered observer.
+/// This example demonstrates the usage of the filtered event_hub.
 /// It is an easy way to filter events based on a list of topics.
 /// They work in a similar way, but you can use generics to filter by any type.
 /// 

@@ -1,13 +1,13 @@
 //// The `filtered` module provides a way to manage and notify subscribers about events based on specific topics.
 //// It supports creating observers that can filter events using topics, allowing more fine-grained control over event handling.
-//// If you only want to use topics of the type `String`, you should use the `observer/topic` module instead.
+//// If you only want to use topics of the type `String`, you should use the `event_hub/topic` module instead.
 //// 
 //// ## Examples
 ////
 //// ### Filtered Observer
 //// ```gleam
 //// import gleam/io
-//// import observer/filtered
+//// import event_hub/filtered
 //// 
 //// pub fn main() {
 ////   use hub <- filtered.new()
@@ -30,20 +30,20 @@
 //// }
 //// ```
 
+import event_hub
 import gleam/list
 import gleam/set
-import observer
 
 type TopicValuePair(value_type, topic_type) =
   #(List(topic_type), value_type)
 
 /// Represents a hub for managing event subscriptions and notifications based on topics.
 pub opaque type Hub(value_type, topic_type) {
-  Hub(hub: observer.Hub(TopicValuePair(value_type, topic_type)))
+  Hub(hub: event_hub.Hub(TopicValuePair(value_type, topic_type)))
 }
 
-/// Creates a new filtered observer hub, executes the given context with the hub.
-/// If you only want to use topics of the type `String`, you should use the `observer/topic` module instead.
+/// Creates a new filtered event hub, executes the given context with the hub.
+/// If you only want to use topics of the type `String`, you should use the `event_hub/topic` module instead.
 ///
 /// ## Parameters
 /// - `context`: A function that takes the created `Hub` and returns a result.
@@ -53,7 +53,7 @@ pub opaque type Hub(value_type, topic_type) {
 ///
 /// ## Example
 /// ```gleam
-/// import observer/filtered
+/// import event_hub/filtered
 ///
 /// pub fn example() {
 ///   filtered.new(fn(hub) {
@@ -63,7 +63,7 @@ pub opaque type Hub(value_type, topic_type) {
 /// }
 /// ```
 pub fn new(in context: fn(Hub(value_type, topic_type)) -> result) -> result {
-  use hub <- observer.new()
+  use hub <- event_hub.new()
   let hub = Hub(hub)
 
   context(hub)
@@ -79,7 +79,7 @@ pub fn new(in context: fn(Hub(value_type, topic_type)) -> result) -> result {
 ///
 /// ## Example
 /// ```gleam
-/// import observer/filtered
+/// import event_hub/filtered
 ///
 /// pub fn example(hub: filtered.Hub(String, String)) {
 ///   filtered.notify(hub, ["topic1"], "event")
@@ -90,7 +90,7 @@ pub fn notify(
   with topics: List(topic_type),
   and value: value_type,
 ) -> Nil {
-  observer.notify(hub.hub, #(topics, value))
+  event_hub.notify(hub.hub, #(topics, value))
 }
 
 /// Subscribes to specific topics and returns an unsubscribe function.
@@ -107,7 +107,7 @@ pub fn notify(
 /// ## Example
 /// ```gleam
 /// import gleam/io
-/// import observer/filtered
+/// import event_hub/filtered
 /// 
 /// pub fn example(hub: filtered.Hub(String, String)) {
 ///   let unsubscribe =
@@ -122,11 +122,11 @@ pub fn notify(
 pub fn subscribe(
   on hub: Hub(value_type, topic_type),
   with topics: List(topic_type),
-  and callback: observer.Callback(value_type),
-) -> observer.Unsubscribe {
+  and callback: event_hub.Callback(value_type),
+) -> event_hub.Unsubscribe {
   let topics = set.from_list(topics)
 
-  use #(event_topics, event_value) <- observer.subscribe(hub.hub)
+  use #(event_topics, event_value) <- event_hub.subscribe(hub.hub)
 
   case list.any(event_topics, fn(topic) { set.contains(topics, topic) }) {
     True -> callback(event_value)
@@ -139,8 +139,8 @@ pub opaque type Hub2(value_type, topic_type1, topic_type2) {
   Hub2(hub: Hub(TopicValuePair(value_type, topic_type2), topic_type1))
 }
 
-/// Creates a new filtered observer hub with two levels of topics.
-/// If you only want to use topics of the type `String`, you should use the `observer/topic` module instead.
+/// Creates a new filtered event hub with two levels of topics.
+/// If you only want to use topics of the type `String`, you should use the `event_hub/topic` module instead.
 ///
 /// ## Parameters
 /// - `context`: A function that takes the created `Hub2` and returns a result.
@@ -150,7 +150,7 @@ pub opaque type Hub2(value_type, topic_type1, topic_type2) {
 ///
 /// ## Example
 /// ```gleam
-/// import observer/filtered
+/// import event_hub/filtered
 ///
 /// pub fn example() {
 ///   filtered.new2(fn(hub) {
@@ -178,7 +178,7 @@ pub fn new2(
 ///
 /// ## Example
 /// ```gleam
-/// import observer/filtered
+/// import event_hub/filtered
 /// 
 /// pub fn example(hub: filtered.Hub2(String, String, String)) {
 ///   filtered.notify2(hub, ["topic1"], ["subtopic1"], "event")
@@ -207,7 +207,7 @@ pub fn notify2(
 /// ## Example
 /// ```gleam
 /// import gleam/io
-/// import observer/filtered
+/// import event_hub/filtered
 /// 
 /// pub fn example(hub: filtered.Hub2(String, String, String)) {
 ///   let unsubscribe =
@@ -223,8 +223,8 @@ pub fn subscribe2(
   hub: Hub2(value_type, topic_type1, topic_type2),
   topics1: List(topic_type1),
   topics2: List(topic_type2),
-  callback: observer.Callback(value_type),
-) -> observer.Unsubscribe {
+  callback: event_hub.Callback(value_type),
+) -> event_hub.Unsubscribe {
   let topics = set.from_list(topics2)
 
   use #(event_topics, event_value) <- subscribe(hub.hub, topics1)
@@ -242,8 +242,8 @@ pub opaque type Hub3(value_type, topic_type1, topic_type2, topic_type3) {
   )
 }
 
-/// Creates a new filtered observer hub with three levels of topics.
-/// If you only want to use topics of the type `String`, you should use the `observer/topic` module instead.
+/// Creates a new filtered event hub with three levels of topics.
+/// If you only want to use topics of the type `String`, you should use the `event_hub/topic` module instead.
 ///
 /// ## Parameters
 /// - `context`: A function that takes the created `Hub3` and returns a result.
@@ -253,7 +253,7 @@ pub opaque type Hub3(value_type, topic_type1, topic_type2, topic_type3) {
 ///
 /// ## Example
 /// ```gleam
-/// import observer/filtered
+/// import event_hub/filtered
 ///
 /// pub fn example() {
 ///   filtered.new3(fn(hub) {
@@ -283,7 +283,7 @@ pub fn new3(
 ///
 /// ## Example
 /// ```gleam
-/// import observer/filtered
+/// import event_hub/filtered
 ///
 /// pub fn example(hub: filtered.Hub3(String, String, String, String)) {
 ///   filtered.notify3(hub, ["topic1"], ["subtopic1"], ["subsubtopic1"], "event")
@@ -314,7 +314,7 @@ pub fn notify3(
 /// ## Example
 /// ```gleam
 /// import gleam/io
-/// import observer/filtered
+/// import event_hub/filtered
 /// 
 /// pub fn example(hub: filtered.Hub3(String, String, String, String)) {
 ///   let unsubscribe =
@@ -335,8 +335,8 @@ pub fn subscribe3(
   topics1: List(topic_type1),
   topics2: List(topic_type2),
   topics3: List(topic_type3),
-  callback: observer.Callback(value_type),
-) -> observer.Unsubscribe {
+  callback: event_hub.Callback(value_type),
+) -> event_hub.Unsubscribe {
   let topics = set.from_list(topics3)
 
   use #(event_topics, event_value) <- subscribe2(hub.hub, topics1, topics2)
@@ -365,8 +365,8 @@ pub opaque type Hub4(
   )
 }
 
-/// Creates a new filtered observer hub with four levels of topics.
-/// If you only want to use topics of the type `String`, you should use the `observer/topic` module instead.
+/// Creates a new filtered event hub with four levels of topics.
+/// If you only want to use topics of the type `String`, you should use the `event_hub/topic` module instead.
 ///
 /// ## Parameters
 /// - `context`: A function that takes the created `Hub4` and returns a result.
@@ -376,7 +376,7 @@ pub opaque type Hub4(
 ///
 /// ## Example
 /// ```gleam
-/// import observer/filtered
+/// import event_hub/filtered
 ///
 /// pub fn example() {
 ///   filtered.new4(fn(hub) {
@@ -409,7 +409,7 @@ pub fn new4(
 ///
 /// ## Example
 /// ```gleam
-/// import observer/filtered
+/// import event_hub/filtered
 /// 
 /// pub fn example(hub: filtered.Hub4(String, String, String, String, String)) {
 ///   filtered.notify4(
@@ -449,7 +449,7 @@ pub fn notify4(
 /// ## Example
 /// ```gleam
 /// import gleam/io
-/// import observer/filtered
+/// import event_hub/filtered
 /// 
 /// pub fn example(hub: filtered.Hub4(String, String, String, String, String)) {
 ///   let unsubscribe =
@@ -472,8 +472,8 @@ pub fn subscribe4(
   topics2: List(topic_type2),
   topics3: List(topic_type3),
   topics4: List(topic_type4),
-  callback: observer.Callback(value_type),
-) -> observer.Unsubscribe {
+  callback: event_hub.Callback(value_type),
+) -> event_hub.Unsubscribe {
   let topics = set.from_list(topics4)
 
   use #(event_topics, event_value) <- subscribe3(

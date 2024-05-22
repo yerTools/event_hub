@@ -1,10 +1,10 @@
+import event_hub
+import event_hub/filtered
+import event_hub/reactive
+import event_hub/stateful
+import event_hub/topic
 import gleeunit
 import gleeunit/should
-import observer
-import observer/filtered
-import observer/reactive
-import observer/stateful
-import observer/topic
 
 pub fn main() {
   gleeunit.main()
@@ -63,32 +63,32 @@ pub fn stateless_test() {
   use a <- mut(0)
   use b <- mut(0)
 
-  use hub <- observer.new()
+  use hub <- event_hub.new()
 
   expect(a, 0)
   expect(b, 0)
 
-  observer.notify(hub, 1)
+  event_hub.notify(hub, 1)
 
   expect(a, 0)
   expect(b, 0)
 
-  let unsubscribe_a = observer.subscribe(hub, fn(value) { set(a, value) })
+  let unsubscribe_a = event_hub.subscribe(hub, fn(value) { set(a, value) })
 
   expect(a, 0)
   expect(b, 0)
 
-  observer.notify(hub, 2)
+  event_hub.notify(hub, 2)
 
   expect(a, 2)
   expect(b, 0)
 
-  let unsubscribe_b = observer.subscribe(hub, fn(value) { set(b, value) })
+  let unsubscribe_b = event_hub.subscribe(hub, fn(value) { set(b, value) })
 
   expect(a, 2)
   expect(b, 0)
 
-  observer.notify(hub, 3)
+  event_hub.notify(hub, 3)
 
   expect(a, 3)
   expect(b, 3)
@@ -98,7 +98,7 @@ pub fn stateless_test() {
   expect(a, 3)
   expect(b, 3)
 
-  observer.notify(hub, 4)
+  event_hub.notify(hub, 4)
 
   expect(a, 3)
   expect(b, 4)
@@ -108,7 +108,7 @@ pub fn stateless_test() {
   expect(a, 3)
   expect(b, 4)
 
-  observer.notify(hub, 5)
+  event_hub.notify(hub, 5)
 
   expect(a, 3)
   expect(b, 4)
@@ -762,14 +762,14 @@ pub fn stateful_function_test() {
 pub fn stateless_hub_in_hub_test() {
   use a <- mut(0)
 
-  use inner_hub <- observer.new()
-  use outer_hub <- observer.new()
+  use inner_hub <- event_hub.new()
+  use outer_hub <- event_hub.new()
 
-  observer.subscribe(inner_hub, fn(value) { set(a, value) })
+  event_hub.subscribe(inner_hub, fn(value) { set(a, value) })
 
-  observer.subscribe(outer_hub, fn(hub) { observer.notify(hub, 1) })
+  event_hub.subscribe(outer_hub, fn(hub) { event_hub.notify(hub, 1) })
 
-  observer.notify(outer_hub, inner_hub)
+  event_hub.notify(outer_hub, inner_hub)
 
   expect(a, 1)
 

@@ -157,7 +157,7 @@ function findMatchingCallbacks(topicIndex, topics, callbacks) {
 // ==================
 
 /**
- * Creates a new stateless observer.
+ * Creates a new stateless event_hub.
  * @template T
  * @returns {Hub<T>}
  */
@@ -202,7 +202,7 @@ export function removeStateless(hub, index) {
 }
 
 /**
- * Clears all callbacks from the stateless observer.
+ * Clears all callbacks from the stateless event_hub.
  * @template T
  * @param {Hub<T>} hub
  */
@@ -273,7 +273,7 @@ export function removeStateful(hub, index) {
 }
 
 /**
- * Clears all callbacks and the value from the stateful observer.
+ * Clears all callbacks and the value from the stateful event_hub.
  * @template T
  * @param {StatefulHub<T>} hub
  */
@@ -288,7 +288,7 @@ export function stopStateful(hub) {
 // ====================
 
 /**
- * Creates a new topic-based observer.
+ * Creates a new topic-based event_hub.
  * @template T
  * @returns {TopicBasedHub<T>}
  */
@@ -353,7 +353,7 @@ export function removeTopicBased(hub, index) {
 }
 
 /**
- * Clears all callbacks and the topic index from the stateful observer.
+ * Clears all callbacks and the topic index from the stateful event_hub.
  * @template T
  * @param {TopicBasedHub<T>} hub
  */

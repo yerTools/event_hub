@@ -7,7 +7,7 @@
 //// ### Reactive Observer
 //// ```gleam
 //// import gleam/io
-//// import observer/reactive
+//// import event_hub/reactive
 //// 
 //// pub fn main() {
 ////   let get_time = fn() { "2024-05-21T16:30:00Z" }
@@ -23,7 +23,7 @@
 //// }
 //// ```
 
-import observer
+import event_hub
 
 /// Represents a function that returns the current state value.
 pub type State(value_type) =
@@ -31,7 +31,7 @@ pub type State(value_type) =
 
 /// Represents a hub for managing event subscriptions and notifications based on dynamic state.
 pub opaque type Hub(value_type) {
-  Hub(inner: observer.Hub(value_type), state: State(value_type))
+  Hub(inner: event_hub.Hub(value_type), state: State(value_type))
 }
 
 /// Creates a new reactive observer hub, executes the given context with the hub.
@@ -45,7 +45,7 @@ pub opaque type Hub(value_type) {
 ///
 /// ## Example
 /// ```gleam
-/// import observer/reactive
+/// import event_hub/reactive
 ///
 /// pub fn example() {
 ///   let get_state = fn() { "current state" }
@@ -60,7 +60,7 @@ pub fn new(
   with state: State(value_type),
   in context: fn(Hub(value_type)) -> result,
 ) -> result {
-  use inner <- observer.new()
+  use inner <- event_hub.new()
   let hub = Hub(inner, state)
 
   context(hub)
@@ -77,7 +77,7 @@ pub fn new(
 ///
 /// ## Example
 /// ```gleam
-/// import observer/reactive
+/// import event_hub/reactive
 ///
 /// pub fn example(hub: reactive.Hub(String)) {
 ///   let value = reactive.notify(hub)
@@ -85,7 +85,7 @@ pub fn new(
 /// ```
 pub fn notify(on hub: Hub(value_type)) -> value_type {
   let value = hub.state()
-  observer.notify(hub.inner, value)
+  event_hub.notify(hub.inner, value)
   value
 }
 
@@ -102,7 +102,7 @@ pub fn notify(on hub: Hub(value_type)) -> value_type {
 /// ## Example
 /// ```gleam
 /// import gleam/io
-/// import observer/reactive
+/// import event_hub/reactive
 /// 
 /// pub fn example(hub: reactive.Hub(String)) {
 ///   let unsubscribe =
@@ -116,7 +116,7 @@ pub fn notify(on hub: Hub(value_type)) -> value_type {
 /// ```
 pub fn subscribe(
   on hub: Hub(value_type),
-  with callback: observer.Callback(value_type),
-) -> observer.Unsubscribe {
-  observer.subscribe(hub.inner, callback)
+  with callback: event_hub.Callback(value_type),
+) -> event_hub.Unsubscribe {
+  event_hub.subscribe(hub.inner, callback)
 }

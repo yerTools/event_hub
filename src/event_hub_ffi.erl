@@ -1,4 +1,4 @@
--module(observer_ffi).
+-module(event_hub_ffi).
 -export([
     start_stateless/0,
     add_stateless/2,
@@ -137,7 +137,7 @@ find_matching_callbacks(TopicIndex, TopicsList, Callbacks) ->
 start_stateless() ->
     spawn(fun() -> stateless_loop(#{}, 0) end).
 
-%% The main loop for the stateless observer.
+%% The main loop for the stateless event_hub.
 stateless_loop(Callbacks, Index) ->
     receive
         {add, Callback, From} ->
@@ -185,7 +185,7 @@ stop_stateless(Process) ->
 start_stateful(State) ->
     spawn(fun() -> stateful_loop(State, #{}, 0) end).
 
-%% The main loop for the stateful observer.
+%% The main loop for the stateful event_hub.
 stateful_loop(State, Callbacks, Index) ->
     receive
         {add, Callback, From} ->
@@ -243,7 +243,7 @@ stop_stateful(Process) ->
 start_topic_based() ->
     spawn(fun() -> topic_based_loop(#{}, #{}, 0) end).
 
-%% The main loop for the topic-based observer.
+%% The main loop for the topic-based event_hub.
 topic_based_loop(Callbacks, TopicIndex, Index) ->
     receive
         {add, Topics, Callback, From} ->

@@ -1,27 +1,27 @@
-# Observer
+# Event-Hub
 
-[![Package Version](https://img.shields.io/hexpm/v/observer)](https://hex.pm/packages/observer)
-[![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/observer/)
+[![Package Version](https://img.shields.io/hexpm/v/event_hub)](https://hex.pm/packages/event_hub)
+[![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/event_hub/)
 
-Observer is a Gleam library that provides simple hubs with publishers and
+Event-Hub is a Gleam library that provides simple hubs with publishers and
 subscribers for event-driven observers. It supports asynchronous message
 handling and event notifications, decoupling components efficiently. It works on
 Erlang and JavaScript.
 
 ---
 
-Further documentation can be found at <https://hexdocs.pm/observer>.
+Further documentation can be found at <https://hexdocs.pm/event_hub>.
 
-- [observer](https://hexdocs.pm/observer/observer.html)
-- [observer/filtered](https://hexdocs.pm/observer/observer/filtered.html)
-- [observer/reactive](https://hexdocs.pm/observer/observer/reactive.html)
-- [observer/stateful](https://hexdocs.pm/observer/observer/stateful.html)
-- [observer/topic](https://hexdocs.pm/observer/observer/topic.html)
+- [event_hub](https://hexdocs.pm/event_hub/event_hub.html)
+- [event_hub/filtered](https://hexdocs.pm/event_hub/event_hub/filtered.html)
+- [event_hub/reactive](https://hexdocs.pm/event_hub/event_hub/reactive.html)
+- [event_hub/stateful](https://hexdocs.pm/event_hub/event_hub/stateful.html)
+- [event_hub/topic](https://hexdocs.pm/event_hub/event_hub/topic.html)
 
 ## Try it yourself!
 
 ```sh
-gleam add observer
+gleam add event_hub
 ```
 
 ## Examples
@@ -31,18 +31,18 @@ gleam add observer
 ```gleam
 import gleam/int
 import gleam/io
-import observer
-import observer/filtered
-import observer/reactive
-import observer/stateful
-import observer/topic
+import event_hub
+import event_hub/filtered
+import event_hub/reactive
+import event_hub/stateful
+import event_hub/topic
 ```
 
 ### Simple Observer
 
 ````gleam
 /// A simple observer implementation.
-/// This example demonstrates the basic usage of the observer library.
+/// This example demonstrates the basic usage of the Event-Hub library.
 /// It is an easy way to use publishers and subscribers to handle events.
 ///
 /// Outputs the following:
@@ -53,15 +53,15 @@ import observer/topic
 /// ```
 fn simple_observer() {
   // Creates a new hub for distributing events.
-  use hub <- observer.new()
+  use hub <- event_hub.new()
 
   // Notifies all subscribers of the hub that an event has occurred.
-  observer.notify(hub, 1)
+  event_hub.notify(hub, 1)
 
   // You can forward the hub to other functions or components.
   {
     // Using syntactic sugar for handling the callback.
-    use value <- observer.subscribe(hub)
+    use value <- event_hub.subscribe(hub)
 
     // This function gets called when the hub receives an event.
     io.println("[1] | Received an event with value: " <> int.to_string(value))
@@ -70,19 +70,19 @@ fn simple_observer() {
   // You can also subscribe using a normal callback function.
   // This also returns an unsubscribe function.
   let unsubscribe =
-    observer.subscribe(hub, fn(value) {
+    event_hub.subscribe(hub, fn(value) {
       io.println("[2] | Received an event with value: " <> int.to_string(value))
     })
 
   // Notifies all subscribers of the hub that an event has occurred with the value `2`.
   // These notifications occur in parallel but notify waits for all of them to complete.
-  observer.notify(hub, 2)
+  event_hub.notify(hub, 2)
 
   // Unsubscribe if you no longer need to receive events.
   unsubscribe()
 
   // Notify again to demonstrate that the unsubscribe function works.
-  observer.notify(hub, 3)
+  event_hub.notify(hub, 3)
 }
 ````
 
@@ -90,7 +90,7 @@ fn simple_observer() {
 
 ````gleam
 /// A simple stateful observer implementation.
-/// This is like the previous example, but it uses a stateful observer.
+/// This is like the previous example, but it uses a stateful event_hub.
 ///
 /// Outputs the following:
 /// ```text
@@ -318,7 +318,7 @@ fn multiple_topics() {
 ### Filtered Observer
 
 ````gleam
-/// This example demonstrates the usage of the filtered observer.
+/// This example demonstrates the usage of the filtered event_hub.
 /// It is an easy way to filter events based on a list of topics.
 /// They work in a similar way, but you can use generics to filter by any type.
 ///

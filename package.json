@@ -1,7 +1,7 @@
 {
-  "name": "observer",
+  "name": "event_hub",
   "version": "1.0.0",
-  "description": "Observer is a Gleam library that provides simple hubs with publishers and subscribers for event-driven observers. It supports asynchronous message handling and event notifications, decoupling components efficiently. It works on Erlang and JavaScript.",
+  "description": "Event-Hub is a Gleam library that provides simple hubs with publishers and subscribers for event-driven observers. It supports asynchronous message handling and event notifications, decoupling components efficiently. It works on Erlang and JavaScript.",
   "directories": {
     "test": "test"
   },
@@ -10,23 +10,24 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yerTools/observer.git"
+    "url": "git+https://github.com/yerTools/event_hub.git"
   },
   "keywords": [
-    "observer",
-    "notifications",
-    "javascript",
-    "events",
     "erlang",
-    "publisher",
+    "events",
+    "events",
+    "gleam",
+    "javascript",
+    "notifications",
+    "observer",
     "observer-pattern",
-    "subscriber",
-    "gleam"
+    "publisher",
+    "subscriber"
   ],
   "author": "Felix Mayer",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/yerTools/observer/issues"
+    "url": "https://github.com/yerTools/event_hub/issues"
   },
-  "homepage": "https://github.com/yerTools/observer#readme"
+  "homepage": "https://github.com/yerTools/event_hub#readme"
 }

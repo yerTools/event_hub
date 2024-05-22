@@ -7,7 +7,7 @@
 //// ### Single-Level Topic-Based Observer
 //// ```gleam
 //// import gleam/io
-//// import observer/topic
+//// import event_hub/topic
 //// 
 //// pub fn main() {
 ////   use hub <- topic.new()
@@ -29,25 +29,25 @@
 //// }
 //// ```
 
-import observer
+import event_hub
 
 /// Starts the topic-based observer process.
-@external(erlang, "observer_ffi", "start_topic_based")
-@external(javascript, "../observer_ffi.mjs", "startTopicBased")
+@external(erlang, "event_hub_ffi", "start_topic_based")
+@external(javascript, "../event_hub_ffi.mjs", "startTopicBased")
 fn start_topic_based() -> HubN(value_type)
 
 /// Adds a callback with topics to the topic-based observer, returning the index.
-@external(erlang, "observer_ffi", "add_topic_based")
-@external(javascript, "../observer_ffi.mjs", "addTopicBased")
+@external(erlang, "event_hub_ffi", "add_topic_based")
+@external(javascript, "../event_hub_ffi.mjs", "addTopicBased")
 fn add_topic_based(
   hub: HubN(value_type),
   topics: List(List(String)),
-  callback: observer.Callback(value_type),
+  callback: event_hub.Callback(value_type),
 ) -> Int
 
 /// Invokes all matching callbacks in parallel with the given topics and value, and waits for all of them to complete.
-@external(erlang, "observer_ffi", "invoke_topic_based")
-@external(javascript, "../observer_ffi.mjs", "invokeTopicBased")
+@external(erlang, "event_hub_ffi", "invoke_topic_based")
+@external(javascript, "../event_hub_ffi.mjs", "invokeTopicBased")
 fn invoke_topic_based(
   hub: HubN(value_type),
   topics: List(List(String)),
@@ -55,19 +55,19 @@ fn invoke_topic_based(
 ) -> Nil
 
 /// Removes a callback by its index.
-@external(erlang, "observer_ffi", "remove_topic_based")
-@external(javascript, "../observer_ffi.mjs", "removeTopicBased")
+@external(erlang, "event_hub_ffi", "remove_topic_based")
+@external(javascript, "../event_hub_ffi.mjs", "removeTopicBased")
 fn remove_topic_based(hub: HubN(value_type), index: Int) -> Nil
 
 /// Stops the topic-based observer process.
-@external(erlang, "observer_ffi", "stop_topic_based")
-@external(javascript, "../observer_ffi.mjs", "stopTopicBased")
+@external(erlang, "event_hub_ffi", "stop_topic_based")
+@external(javascript, "../event_hub_ffi.mjs", "stopTopicBased")
 fn stop_topic_based(hub: HubN(value_type)) -> Nil
 
 /// Represents a hub for managing event subscriptions and notifications based on hierarchical topics.
 pub type HubN(value_type)
 
-/// Creates a new topic-based observer hub, executes the given context with the hub, and stops the hub afterward.
+/// Creates a new topic-based event hub, executes the given context with the hub, and stops the hub afterward.
 ///
 /// ## Parameters
 /// - `context`: A function that takes the created `HubN` and returns a result.
@@ -77,7 +77,7 @@ pub type HubN(value_type)
 ///
 /// ## Example
 /// ```gleam
-/// import observer/topic
+/// import event_hub/topic
 ///
 /// pub fn example() {
 ///   topic.new(fn(hub) {
@@ -105,7 +105,7 @@ pub fn new_n(in context: fn(HubN(value_type)) -> result) -> result {
 ///
 /// ## Example
 /// ```gleam
-/// import observer/topic
+/// import event_hub/topic
 ///
 /// pub fn example(hub: topic.HubN(String)) {
 ///   topic.notify_n(hub, [["topic1"]], "event")
@@ -133,7 +133,7 @@ pub fn notify_n(
 /// ## Example
 /// ```gleam
 /// import gleam/io
-/// import observer/topic
+/// import event_hub/topic
 /// 
 /// pub fn example(hub: topic.HubN(String)) {
 ///   let unsubscribe =
@@ -148,8 +148,8 @@ pub fn notify_n(
 pub fn subscribe_n(
   on hub: HubN(value_type),
   with topics: List(List(String)),
-  and callback: observer.Callback(value_type),
-) -> observer.Unsubscribe {
+  and callback: event_hub.Callback(value_type),
+) -> event_hub.Unsubscribe {
   let index = add_topic_based(hub, topics, callback)
   fn() { remove_topic_based(hub, index) }
 }
@@ -159,7 +159,7 @@ pub opaque type Hub(value_type) {
   Hub(hub: HubN(value_type))
 }
 
-/// Creates a new single-level topic-based observer hub, executes the given context with the hub.
+/// Creates a new single-level topic-based event hub, executes the given context with the hub.
 ///
 /// ## Parameters
 /// - `context`: A function that takes the created `Hub` and returns a result.
@@ -169,7 +169,7 @@ pub opaque type Hub(value_type) {
 ///
 /// ## Example
 /// ```gleam
-/// import observer/topic
+/// import event_hub/topic
 ///
 /// pub fn example() {
 ///   topic.new(fn(hub) {
@@ -192,7 +192,7 @@ pub fn new(in context: fn(Hub(value_type)) -> result) -> result {
 ///
 /// ## Example
 /// ```gleam
-/// import observer/topic
+/// import event_hub/topic
 ///
 /// pub fn example(hub: topic.Hub(String)) {
 ///   topic.notify(hub, ["topic1"], "event")
@@ -219,7 +219,7 @@ pub fn notify(
 /// ## Example
 /// ```gleam
 /// import gleam/io
-/// import observer/topic
+/// import event_hub/topic
 /// 
 /// pub fn example(hub: topic.Hub(String)) {
 ///   let unsubscribe =
@@ -234,8 +234,8 @@ pub fn notify(
 pub fn subscribe(
   on hub: Hub(value_type),
   with topics: List(String),
-  and callback: observer.Callback(value_type),
-) -> observer.Unsubscribe {
+  and callback: event_hub.Callback(value_type),
+) -> event_hub.Unsubscribe {
   subscribe_n(hub.hub, [topics], callback)
 }
 
@@ -244,7 +244,7 @@ pub opaque type Hub2(value_type) {
   Hub2(hub: HubN(value_type))
 }
 
-/// Creates a new two-level topic-based observer hub, executes the given context with the hub.
+/// Creates a new two-level topic-based event hub, executes the given context with the hub.
 ///
 /// ## Parameters
 /// - `context`: A function that takes the created `Hub2` and returns a result.
@@ -254,7 +254,7 @@ pub opaque type Hub2(value_type) {
 ///
 /// ## Example
 /// ```gleam
-/// import observer/topic
+/// import event_hub/topic
 ///
 /// pub fn example() {
 ///   topic.new2(fn(hub) {
@@ -278,7 +278,7 @@ pub fn new2(in context: fn(Hub2(value_type)) -> result) -> result {
 ///
 /// ## Example
 /// ```gleam
-/// import observer/topic
+/// import event_hub/topic
 ///
 /// pub fn example(hub: topic.Hub2(String)) {
 ///   topic.notify2(hub, ["topic1"], ["subtopic1"], "event")
@@ -306,7 +306,7 @@ pub fn notify2(
 ///
 /// ## Example
 /// ```gleam
-/// import observer/topic
+/// import event_hub/topic
 /// import gleam/io
 /// 
 /// pub fn example(hub: topic.Hub2(String)) {
@@ -323,8 +323,8 @@ pub fn subscribe2(
   hub: Hub2(value_type),
   topics1: List(String),
   topics2: List(String),
-  callback: observer.Callback(value_type),
-) -> observer.Unsubscribe {
+  callback: event_hub.Callback(value_type),
+) -> event_hub.Unsubscribe {
   subscribe_n(hub.hub, [topics1, topics2], callback)
 }
 
@@ -333,7 +333,7 @@ pub opaque type Hub3(value_type) {
   Hub3(hub: HubN(value_type))
 }
 
-/// Creates a new three-level topic-based observer hub, executes the given context with the hub.
+/// Creates a new three-level topic-based event hub, executes the given context with the hub.
 ///
 /// ## Parameters
 /// - `context`: A function that takes the created `Hub3` and returns a result.
@@ -343,7 +343,7 @@ pub opaque type Hub3(value_type) {
 ///
 /// ## Example
 /// ```gleam
-/// import observer/topic
+/// import event_hub/topic
 ///
 /// pub fn example() {
 ///   topic.new3(fn(hub) {
@@ -368,7 +368,7 @@ pub fn new3(in context: fn(Hub3(value_type)) -> result) -> result {
 ///
 /// ## Example
 /// ```gleam
-/// import observer/topic
+/// import event_hub/topic
 ///
 /// pub fn example(hub: topic.Hub3(String)) {
 ///   topic.notify3(hub, ["topic1"], ["subtopic1"], ["subsubtopic1"], "event")
@@ -399,7 +399,7 @@ pub fn notify3(
 /// ## Example
 /// ```gleam
 /// import gleam/io
-/// import observer/topic
+/// import event_hub/topic
 /// 
 /// pub fn example(hub: topic.Hub3(String)) {
 ///   let unsubscribe =
@@ -420,8 +420,8 @@ pub fn subscribe3(
   topics1: List(String),
   topics2: List(String),
   topics3: List(String),
-  callback: observer.Callback(value_type),
-) -> observer.Unsubscribe {
+  callback: event_hub.Callback(value_type),
+) -> event_hub.Unsubscribe {
   subscribe_n(hub.hub, [topics1, topics2, topics3], callback)
 }
 
@@ -430,7 +430,7 @@ pub opaque type Hub4(value_type) {
   Hub4(hub: HubN(value_type))
 }
 
-/// Creates a new four-level topic-based observer hub, executes the given context with the hub.
+/// Creates a new four-level topic-based event hub, executes the given context with the hub.
 ///
 /// ## Parameters
 /// - `context`: A function that takes the created `Hub4` and returns a result.
@@ -440,7 +440,7 @@ pub opaque type Hub4(value_type) {
 ///
 /// ## Example
 /// ```gleam
-/// import observer/topic
+/// import event_hub/topic
 ///
 /// pub fn example() {
 ///   topic.new4(fn(hub) {
@@ -466,7 +466,7 @@ pub fn new4(in context: fn(Hub4(value_type)) -> result) -> result {
 ///
 /// ## Example
 /// ```gleam
-/// import observer/topic
+/// import event_hub/topic
 /// 
 /// pub fn example(hub: topic.Hub4(String)) {
 ///   topic.notify4(
@@ -506,7 +506,7 @@ pub fn notify4(
 /// ## Example
 /// ```gleam
 /// import gleam/io
-/// import observer/topic
+/// import event_hub/topic
 /// 
 /// pub fn example(hub: topic.Hub4(String)) {
 ///   let unsubscribe =
@@ -529,7 +529,7 @@ pub fn subscribe4(
   topics2: List(String),
   topics3: List(String),
   topics4: List(String),
-  callback: observer.Callback(value_type),
-) -> observer.Unsubscribe {
+  callback: event_hub.Callback(value_type),
+) -> event_hub.Unsubscribe {
   subscribe_n(hub.hub, [topics1, topics2, topics3, topics4], callback)
 }

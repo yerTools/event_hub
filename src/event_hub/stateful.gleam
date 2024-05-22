@@ -7,7 +7,7 @@
 //// ### Stateful Observer
 //// ```gleam
 //// import gleam/io
-//// import observer/stateful
+//// import event_hub/stateful
 //// 
 //// pub fn main() {
 ////   use hub <- stateful.new("initial state")
@@ -25,39 +25,39 @@
 //// }
 //// ```
 
-import observer
+import event_hub
 
 /// Starts the stateful observer process with an initial state.
-@external(erlang, "observer_ffi", "start_stateful")
-@external(javascript, "../observer_ffi.mjs", "startStateful")
+@external(erlang, "event_hub_ffi", "start_stateful")
+@external(javascript, "../event_hub_ffi.mjs", "startStateful")
 fn start_stateful(value: value_type) -> Hub(value_type)
 
 /// Adds a callback to the stateful observer, returning the current state and index.
-@external(erlang, "observer_ffi", "add_stateful")
-@external(javascript, "../observer_ffi.mjs", "addStateful")
+@external(erlang, "event_hub_ffi", "add_stateful")
+@external(javascript, "../event_hub_ffi.mjs", "addStateful")
 fn add_stateful(
   hub: Hub(value_type),
-  callback: observer.Callback(value_type),
+  callback: event_hub.Callback(value_type),
 ) -> #(value_type, Int)
 
 /// Retrieves the current state.
-@external(erlang, "observer_ffi", "current_state")
-@external(javascript, "../observer_ffi.mjs", "currentState")
+@external(erlang, "event_hub_ffi", "current_state")
+@external(javascript, "../event_hub_ffi.mjs", "currentState")
 fn current_state(hub: Hub(value_type)) -> value_type
 
 /// Invokes all callbacks in parallel with a new state, updating the state and waits for all callbacks to complete.
-@external(erlang, "observer_ffi", "invoke_stateful")
-@external(javascript, "../observer_ffi.mjs", "invokeStateful")
+@external(erlang, "event_hub_ffi", "invoke_stateful")
+@external(javascript, "../event_hub_ffi.mjs", "invokeStateful")
 fn invoke_stateful(hub: Hub(value_type), value: value_type) -> Nil
 
 /// Removes a callback by its index.
-@external(erlang, "observer_ffi", "remove_stateful")
-@external(javascript, "../observer_ffi.mjs", "removeStateful")
+@external(erlang, "event_hub_ffi", "remove_stateful")
+@external(javascript, "../event_hub_ffi.mjs", "removeStateful")
 fn remove_stateful(hub: Hub(value_type), index: Int) -> Nil
 
 /// Stops the stateful observer process.
-@external(erlang, "observer_ffi", "stop_stateful")
-@external(javascript, "../observer_ffi.mjs", "stopStateful")
+@external(erlang, "event_hub_ffi", "stop_stateful")
+@external(javascript, "../event_hub_ffi.mjs", "stopStateful")
 fn stop_stateful(hub: Hub(value_type)) -> Nil
 
 /// Represents a hub for managing event subscriptions and notifications with a mutable state.
@@ -74,7 +74,7 @@ pub type Hub(value_type)
 ///
 /// ## Example
 /// ```gleam
-/// import observer/stateful
+/// import event_hub/stateful
 ///
 /// pub fn example() {
 ///   stateful.new("initial state", fn(hub) {
@@ -105,7 +105,7 @@ pub fn new(
 ///
 /// ## Example
 /// ```gleam
-/// import observer/stateful
+/// import event_hub/stateful
 ///
 /// pub fn example(hub: stateful.Hub(String)) {
 ///   let current_state = stateful.state(hub)
@@ -124,7 +124,7 @@ pub fn state(of hub: Hub(value_type)) -> value_type {
 ///
 /// ## Example
 /// ```gleam
-/// import observer/stateful
+/// import event_hub/stateful
 ///
 /// pub fn example(hub: stateful.Hub(String)) {
 ///   stateful.notify(hub, "new state")
@@ -149,7 +149,7 @@ pub fn notify(on hub: Hub(value_type), with value: value_type) -> Nil {
 /// ## Example
 /// ```gleam
 /// import gleam/io
-/// import observer/stateful
+/// import event_hub/stateful
 /// 
 /// pub fn example(hub: stateful.Hub(String)) {
 ///   let #(current_state, unsubscribe) =
@@ -164,8 +164,8 @@ pub fn notify(on hub: Hub(value_type), with value: value_type) -> Nil {
 pub fn subscribe(
   on hub: Hub(value_type),
   should notify_current_state: Bool,
-  with callback: observer.Callback(value_type),
-) -> #(value_type, observer.Unsubscribe) {
+  with callback: event_hub.Callback(value_type),
+) -> #(value_type, event_hub.Unsubscribe) {
   case notify_current_state {
     True -> {
       let current_state = state(hub)

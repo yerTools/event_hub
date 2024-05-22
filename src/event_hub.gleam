@@ -1,4 +1,4 @@
-//// The `observer` module provides a way to manage and notify subscribers about events.
+//// The `event_hub` module provides a way to manage and notify subscribers about events.
 //// It supports stateless observers, allowing functions to be registered and invoked in parallel when an event occurs.
 ////
 //// ## Examples
@@ -6,45 +6,45 @@
 //// ### Simple Observer
 //// ```gleam
 //// import gleam/io
-//// import observer
+//// import event_hub
 //// 
 //// pub fn main() {
-////   use hub <- observer.new()
+////   use hub <- event_hub.new()
 //// 
 ////   let unsubscribe =
-////     observer.subscribe(hub, fn(value) {
+////     event_hub.subscribe(hub, fn(value) {
 ////       io.println("Received value: " <> value)
 ////     })
 //// 
-////   observer.notify(hub, "Hello, world!")
+////   event_hub.notify(hub, "Hello, world!")
 ////   unsubscribe()
-////   observer.notify(hub, "This won't be received")
+////   event_hub.notify(hub, "This won't be received")
 //// }
 //// ```
 
 /// Starts the stateless observer process.
-@external(erlang, "observer_ffi", "start_stateless")
-@external(javascript, "./observer_ffi.mjs", "startStateless")
+@external(erlang, "event_hub_ffi", "start_stateless")
+@external(javascript, "./event_hub_ffi.mjs", "startStateless")
 fn start_stateless() -> Hub(value_type)
 
 /// Adds a callback to the stateless observer, returning the index.
-@external(erlang, "observer_ffi", "add_stateless")
-@external(javascript, "./observer_ffi.mjs", "addStateless")
+@external(erlang, "event_hub_ffi", "add_stateless")
+@external(javascript, "./event_hub_ffi.mjs", "addStateless")
 fn add_stateless(hub: Hub(value_type), callback: Callback(value_type)) -> Int
 
 /// Invokes all callbacks in parallel with the given value and waits for all of them to complete.
-@external(erlang, "observer_ffi", "invoke_stateless")
-@external(javascript, "./observer_ffi.mjs", "invokeStateless")
+@external(erlang, "event_hub_ffi", "invoke_stateless")
+@external(javascript, "./event_hub_ffi.mjs", "invokeStateless")
 fn invoke_stateless(hub: Hub(value_type), value: value_type) -> Nil
 
 /// Removes a callback by its index.
-@external(erlang, "observer_ffi", "remove_stateless")
-@external(javascript, "./observer_ffi.mjs", "removeStateless")
+@external(erlang, "event_hub_ffi", "remove_stateless")
+@external(javascript, "./event_hub_ffi.mjs", "removeStateless")
 fn remove_stateless(hub: Hub(value_type), index: Int) -> Nil
 
 /// Stops the stateless observer process.
-@external(erlang, "observer_ffi", "stop_stateless")
-@external(javascript, "./observer_ffi.mjs", "stopStateless")
+@external(erlang, "event_hub_ffi", "stop_stateless")
+@external(javascript, "./event_hub_ffi.mjs", "stopStateless")
 fn stop_stateless(hub: Hub(value_type)) -> Nil
 
 /// Represents a hub for managing event subscriptions and notifications.
@@ -68,10 +68,10 @@ pub type Unsubscribe =
 ///
 /// ## Example
 /// ```gleam
-/// import observer
+/// import event_hub
 /// 
 /// pub fn example() {
-///   observer.new(fn(hub) { observer.notify(hub, "event") })
+///   event_hub.new(fn(hub) { event_hub.notify(hub, "event") })
 /// }
 /// ```
 pub fn new(in context: fn(Hub(value_type)) -> result) -> result {
@@ -92,10 +92,10 @@ pub fn new(in context: fn(Hub(value_type)) -> result) -> result {
 ///
 /// ## Example
 /// ```gleam
-/// import observer
+/// import event_hub
 ///
-/// pub fn example(hub: observer.Hub(String)) {
-///   observer.notify(hub, "event")
+/// pub fn example(hub: event_hub.Hub(String)) {
+///   event_hub.notify(hub, "event")
 /// }
 /// ```
 pub fn notify(on hub: Hub(value_type), with value: value_type) -> Nil {
@@ -114,11 +114,11 @@ pub fn notify(on hub: Hub(value_type), with value: value_type) -> Nil {
 /// ## Example
 /// ```gleam
 /// import gleam/io
-/// import observer
+/// import event_hub
 /// 
-/// pub fn example(hub: observer.Hub(String)) {
+/// pub fn example(hub: event_hub.Hub(String)) {
 ///   let unsubscribe =
-///     observer.subscribe(hub, fn(value) {
+///     event_hub.subscribe(hub, fn(value) {
 ///       io.println("Received value: " <> value)
 ///     })
 /// 
