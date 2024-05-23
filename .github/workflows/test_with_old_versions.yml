@@ -1,4 +1,4 @@
-name: test
+name: test with old versions
 
 on:
   push:
@@ -13,8 +13,8 @@ jobs:
 
       - uses: erlef/setup-beam@v1
         with:
-          otp-version: "26.0.2"
-          gleam-version: "1.1.0"
+          otp-version: "25.3.2"
+          gleam-version: "1.0.0"
           rebar3-version: "3"
 
       - uses: actions/setup-node@v4
@@ -25,4 +25,6 @@ jobs:
       - run: gleam deps download
       - run: gleam test --target erlang
       - run: gleam test --target javascript
+      - run: gleam build --target erlang
+      - run: gleam build --target javascript
       - run: gleam format --check src test
