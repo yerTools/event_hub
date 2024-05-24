@@ -1,11 +1,9 @@
 # Changelog
 
-## Development
+## 24.05.2024 - Version 1.0.1
 
 - Removed dependency on `gleam_erlang`.
-- Update readme.
-
----
+- Updated readme.
 
 ## 22.05.2024 - Version 1.0.0
 

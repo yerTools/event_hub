@@ -1,5 +1,5 @@
 name = "event_hub" 
-version = "1.0.0"
+version = "1.0.1"
 
 description = "Event-Hub is a Gleam library that provides simple hubs with publishers and subscribers for event-driven observers. It supports asynchronous message handling and event notifications, decoupling components efficiently. It works on Erlang and JavaScript."
 
