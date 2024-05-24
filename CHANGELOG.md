@@ -3,6 +3,7 @@
 ## Development
 
 - Removed dependency on `gleam_erlang`.
+- Update readme.
 
 ---
 

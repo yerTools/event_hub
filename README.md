@@ -28,6 +28,8 @@ gleam add event_hub
 
 ### Imports:
 
+The following imports where used for the examples:
+
 ```gleam
 import gleam/int
 import gleam/io
@@ -40,17 +42,11 @@ import event_hub/topic
 
 ### Simple Observer
 
-````gleam
-/// A simple observer implementation.
-/// This example demonstrates the basic usage of the Event-Hub library.
-/// It is an easy way to use publishers and subscribers to handle events.
-///
-/// Outputs the following:
-/// ```text
-/// [1] | Received an event with value: 2
-/// [2] | Received an event with value: 2
-/// [1] | Received an event with value: 3
-/// ```
+A simple observer implementation. This example demonstrates the basic usage of
+the Event-Hub library. It is an easy way to use publishers and subscribers to
+handle events.
+
+```gleam
 fn simple_observer() {
   // Creates a new hub for distributing events.
   use hub <- event_hub.new()
@@ -84,24 +80,20 @@ fn simple_observer() {
   // Notify again to demonstrate that the unsubscribe function works.
   event_hub.notify(hub, 3)
 }
-````
+```
+
+#### Output:
+
+> [1] | Received an event with value: 2  
+> [2] | Received an event with value: 2  
+> [1] | Received an event with value: 3
 
 ### Simple Observer with State
 
-````gleam
-/// A simple stateful observer implementation.
-/// This is like the previous example, but it uses a stateful event_hub.
-///
-/// Outputs the following:
-/// ```text
-/// Current state: initial state
-/// Current state: test value
-/// [1] | Received an event with value: test value
-/// Current state: test value
-/// [1] | Received an event with value: third event
-/// [2] | Received an event with value: third event
-/// [1] | Received an event with value: last one
-/// ```
+A simple stateful observer implementation. This is like the previous example,
+but it uses a stateful event_hub.
+
+```gleam
 fn simple_observer_with_state() {
   // Creates a new hub for distributing events with an initial state.
   use hub <- stateful.new("initial state")
@@ -149,23 +141,25 @@ fn simple_observer_with_state() {
   // Notify again to demonstrate that the unsubscribe function works.
   stateful.notify(hub, "last one")
 }
-````
+```
+
+#### Output:
+
+> Current state: initial state  
+> Current state: test value  
+> [1] | Received an event with value: test val  
+> Current state: test value  
+> [1] | Received an event with value: third ev  
+> [2] | Received an event with value: third ev  
+> [1] | Received an event with value: last one
 
 ### Reactive Observer
 
-````gleam
-/// A simple reactive observer implementation.
-/// This can be used to broadcast things that constantly change like the current time to clients.
-/// Another use case would be to broadcast database updates to listeners.
-///
-/// Outputs the following:
-/// ```text
-/// [A] | Current time: 2024-05-21T16:30:00Z
-/// [B] | Current time: 2024-05-21T16:30:00Z
-/// [C] | Current time: 2024-05-21T16:30:00Z
-/// [A] | Current time: 2024-05-21T16:30:00Z
-/// [C] | Current time: 2024-05-21T16:30:00Z
-/// ```
+A simple reactive observer implementation. This can be used to broadcast things
+that constantly change like the current time to clients. Another use case would
+be to broadcast database updates to listeners.
+
+```gleam
 fn reactive_observer() {
   // This is a mockup of the current time function.
   // In a real application, you would use a real time function.
@@ -207,27 +201,22 @@ fn reactive_observer() {
   unsubscribe_c()
   unsubscribe_a()
 }
-````
+```
+
+#### Output:
+
+> [A] | Current time: 2024-05-21T16:30:00Z  
+> [B] | Current time: 2024-05-21T16:30:00Z  
+> [C] | Current time: 2024-05-21T16:30:00Z  
+> [A] | Current time: 2024-05-21T16:30:00Z  
+> [C] | Current time: 2024-05-21T16:30:00Z
 
 ### Single topic-based Observer
 
-````gleam
-/// A simple topic-based observer implementation.
-/// Topics can be used to organize and filter events.
-///
-/// Outputs the following:
-/// ```text
-/// [A] | Received an event with value: Hello A and C!
-/// [C] | Received an event with value: Hello A and C!
-/// [A] | Received an event with value: Hello all!
-/// [B] | Received an event with value: Hello all!
-/// [C] | Received an event with value: Hello all!
-/// [A] | Received an event with value: Hello AB!
-/// [B] | Received an event with value: Hello AB!
-/// [A] | Received an event with value: Hello A, AB, B, C, and all!
-/// [B] | Received an event with value: Hello A, AB, B, C, and all!
-/// [C] | Received an event with value: Hello A, AB, B, C, and all!
-/// ```
+A simple topic-based observer implementation. Topics can be used to organize and
+filter events.
+
+```gleam
 fn single_topic() {
   use hub <- topic.new()
 
@@ -266,24 +255,29 @@ fn single_topic() {
   unsubscribe_b()
   unsubscribe_c()
 }
-````
+```
+
+#### Output:
+
+> [A] | Received an event with value: Hello A and C!  
+> [C] | Received an event with value: Hello A and C!  
+> [A] | Received an event with value: Hello all!  
+> [B] | Received an event with value: Hello all!  
+> [C] | Received an event with value: Hello all!  
+> [A] | Received an event with value: Hello AB!  
+> [B] | Received an event with value: Hello AB!  
+> [A] | Received an event with value: Hello A, AB, B, C, and all!  
+> [B] | Received an event with value: Hello A, AB, B, C, and all!  
+> [C] | Received an event with value: Hello A, AB, B, C, and all!
 
 ### Multiple topic-based Observer
 
-````gleam
-/// Example of using multiple topics.
-/// This can be used for advanced filtering and grouping of events.
-/// A possible example would be to propagate database changes to listeners.
-/// In this case, the first topic would be the table name and the second topics could be the column names.
-///
-/// Outputs the following:
-/// ```text
-/// [User: name, age] | Received an event with value: John Doe
-/// [User: name, age, email] | Received an event with value: John Doe
-/// [User: name, age, email] | Received an event with value: john.doe@example.com
-/// [User: name, age] | Received an event with value: Hello World!
-/// [User: name, age, email] | Received an event with value: Hello World!
-/// ```
+Example of using multiple topics. This can be used for advanced filtering and
+grouping of events. A possible example would be to propagate database changes to
+listeners. In this case, the first topic would be the table name and the second
+topics could be the column names.
+
+```gleam
 fn multiple_topics() {
   use hub <- topic.new2()
 
@@ -313,22 +307,24 @@ fn multiple_topics() {
   unsubscribe_user_name_age()
   unsubscribe_user_details()
 }
-````
+```
+
+#### Output:
+
+> [User: name, age] | Received an event with value: John Doe  
+> [User: name, age, email] | Received an event with value: John Doe  
+> [User: name, age, email] | Received an event with value:
+> john.doe@example.com  
+> [User: name, age] | Received an event with value: Hello World!  
+> [User: name, age, email] | Received an event with value: Hello World!
 
 ### Filtered Observer
 
-````gleam
-/// This example demonstrates the usage of the filtered event_hub.
-/// It is an easy way to filter events based on a list of topics.
-/// They work in a similar way, but you can use generics to filter by any type.
-///
-/// Outputs the following:
-/// ```text
-/// [A] | Received an event with value: Hello all!
-/// [B] | Received an event with value: Hello all!
-/// [A] | Received an event with value: Hello A
-/// [B] | Received an event with value: Hello B
-/// ```
+This example demonstrates the usage of the filtered event_hub. It is an easy way
+to filter events based on a list of topics. They work in a similar way, but you
+can use generics to filter by any type.
+
+```gleam
 fn filtered_observer() {
   use hub <- filtered.new3()
 
@@ -357,4 +353,11 @@ fn filtered_observer() {
   unsubscribe_a()
   unsubscribe_b()
 }
-````
+```
+
+#### Output:
+
+> [A] | Received an event with value: Hello all!  
+> [B] | Received an event with value: Hello all!  
+> [A] | Received an event with value: Hello A  
+> [B] | Received an event with value: Hello B
