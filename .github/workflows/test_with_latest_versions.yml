@@ -13,13 +13,13 @@ jobs:
 
       - uses: erlef/setup-beam@v1
         with:
-          otp-version: "27.0.0"
-          gleam-version: "1.5.0"
+          otp-version: "27.3.4"
+          gleam-version: "1.10.0"
           rebar3-version: "3"
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22.x
+          node-version: 24.x
           cache: "npm"
 
       - run: gleam deps download
