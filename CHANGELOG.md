@@ -7,9 +7,9 @@
 - Update latest GitHub workflow `otp-version` from `27.0.0` to `28.0.0`.
 - Update latest GitHub workflow `gleam-version` from `1.1.0` to `1.11.1`.
 - Update latest GitHub workflow `node-version` from `22.x` to `24.x`.
-- Update old GitHub workflow `gleam-version` from `1.0.0` to `1.9.0`.
+- Update old GitHub workflow `gleam-version` from `1.0.0` to `1.11.0`.
 - Update old GitHub workflow `otp-version` from `25.3.2` to `26.2.5`.
-- Set gleam minimum version from `1.0.0` to `1.9.0`.
+- Set gleam minimum version from `1.0.0` to `1.11.0`.
 
 ---
 

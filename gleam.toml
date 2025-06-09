@@ -7,7 +7,7 @@ licences = ["MIT"]
 repository = { type = "github", user = "yerTools", repo = "event_hub" } 
 
 target = "erlang"
-gleam = ">= 1.9.0"
+gleam = ">= 1.11.0"
 
 [documentation]
 pages = [
